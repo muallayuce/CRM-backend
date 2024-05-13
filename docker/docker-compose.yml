@@ -9,7 +9,14 @@ services:
       - DBPASSWORD=crm
       - DBHOST=crm-db
       - DBPORT=5432
-
+      - ENV_TYPE=development
+      - SECRET_KEY= mco934$@)NHUYTC%6789
+      - DEFAULT_FROM_EMAIL=your_email@example.com
+      - ADMIN_EMAIL=your_admin_email@example.com
+      - CELERY_BROKER_URL="celery.url"
+      - CELERY_RESULT_BACKEND="celery.backend.url"
+      - DOMAIN_NAME="DOMAIN.NAME"
+      - SWAGGER_ROOT_URL="SWAGGER.ROOT.URL"
     depends_on:
       - crm-db
     ports:
@@ -27,7 +34,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - /var/run/postgresql/:/var/run/postgresql
+      - C:/postgresql:/var/run/postgresql
     networks:
       - nw
 
