@@ -33,4 +33,10 @@ RUN dos2unix /app/entrypoint.sh
 RUN chmod +x /app/wait-for-postgres.sh
 RUN dos2unix /app/wait-for-postgres.sh
 
+RUN chmod +x /app/entrypoint.sh
+RUN dos2unix /app/entrypoint.sh
+
+RUN chmod +x /app/wait-for-postgres.sh
+RUN dos2unix /app/wait-for-postgres.sh
+
 ENTRYPOINT ["./entrypoint.sh"]
