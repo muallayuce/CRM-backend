@@ -1,0 +1,7 @@
+Clone the project code from github.
+Download docker from https://www.docker.com/products/docker-desktop/ 
+Make sure your docker desktop application running.
+Run below commands on terminal:
+ docker build -t djcrm:1 -f docker/Dockerfile .
+ docker-compose -f docker/docker-compose.yml up
+Check this link for being sure it is working properly http://localhost:8000/swagger-ui/
