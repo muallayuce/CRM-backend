@@ -95,10 +95,17 @@ pip install -r requirements.txt
 
 
 ### Docker / docker-compose
-in order to use docker, please run the next commands after cloning repo:
+In order to use docker, please run the next commands after cloning repo:
 ```
 docker build -t djcrm:1 -f docker/Dockerfile .
 docker-compose -f docker/docker-compose.yml up
+```
+
+In case of errors during the creation or initialization of a Docker image (docker build, docker-compose), it is recommended to delete existing Docker containers, images, and volumes, restart the PC, and then recreate and reinitialize the image.
+
+Additionally, when working with the project in the chosen Python environment, it is recommended to install all required components for proper code display and recognition in VSCode.
+```
+pip install -r .\requirements.txt
 ```
 
 **Note**: you must have docker/docker-compose installed on your host. 
