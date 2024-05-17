@@ -95,6 +95,11 @@ pip install -r requirements.txt
 
 
 ### Docker / docker-compose
+
+Clone the project code from github.
+Download docker from https://www.docker.com/products/docker-desktop/ 
+Make sure your docker desktop application running.
+
 In order to use docker, please run the next commands after cloning repo:
 ```
 docker build -t djcrm:1 -f docker/Dockerfile .
@@ -108,7 +113,7 @@ Additionally, when working with the project in the chosen Python environment, it
 pip install -r .\requirements.txt
 ```
 
-**Note**: you must have docker/docker-compose installed on your host. 
+**Note**: Check this link for being sure it is working properly http://localhost:8000/swagger-ui/
 ### next steps
 
 
