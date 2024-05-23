@@ -71,7 +71,7 @@ class OrgProfileCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Org
-        fields = ["name"]
+        fields = ["name","is_google_auth"]
         extra_kwargs = {
             "name": {"required": True}
         }

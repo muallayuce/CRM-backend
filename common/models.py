@@ -125,6 +125,8 @@ class Org(BaseModel):
         default=generate_unique_key, unique=True, editable=False
     )
     is_active = models.BooleanField(default=True)
+    is_google_auth = models.BooleanField(default=False)
+
     # address = models.TextField(blank=True, null=True)
     # user_limit = models.IntegerField(default=5)
     # country = models.CharField(max_length=3, choices=COUNTRIES, blank=True, null=True)
