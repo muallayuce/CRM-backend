@@ -12,7 +12,6 @@ sentry-sdk
 wagtail
 django_extensions
 django_storages
-django-allauth
 
 drf-rw-serializers
 django-crum
