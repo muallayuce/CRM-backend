@@ -428,7 +428,23 @@ class OrgProfileCreateView(APIView):
                 "profile_org_list": serializer.data,
             }
         )
-
+    def put(self, request):
+        """
+        Handle updating the 'is_google_auth' field of an organization by name
+        """
+        org_name = request.data.get('name')
+        if not org_name:
+            return Response({"error": True, "message": "Name is required.", "status": status.HTTP_400_BAD_REQUEST})
+        
+        if not Org.objects.filter(name=org_name).exists():
+            return Response({"error": True, "message": "Organization not found.", "status": status.HTTP_404_NOT_FOUND})
+        
+        org = Org.objects.get(name=org_name)
+        serializer = OrgProfileUpdateSerializer(org, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"error": False, "message": "Organization updated successfully.", "org": serializer.data, "status": status.HTTP_200_OK})
+        return Response({"error": True, "errors": serializer.errors, "status": status.HTTP_400_BAD_REQUEST})
 
 class ProfileView(APIView):
     permission_classes = (IsAuthenticated,)
