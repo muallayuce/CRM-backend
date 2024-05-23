@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     "invoices",
     "events",
     "teams",
+    "auth_app",
 ]
 
 MIDDLEWARE = [
