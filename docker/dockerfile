@@ -3,10 +3,10 @@ FROM ubuntu:22.04
 ARG DEBIAN_FRONTEND=noninteractive
 ARG PIP_EXTRA_INDEX_URL
 
-WORKDIR /app
+WORKDIR /appbuild
 
 # Intall dependencies
-COPY requirements.txt /app
+COPY requirements.txt /appbuild
 
 RUN apt update
 ## dos2unix package added 
@@ -22,21 +22,15 @@ RUN apt install -y python3-pip
 RUN python3 -m pip install --no-cache-dir -r requirements.txt
 RUN python3 -m pip install --no-cache-dir redis
 
-COPY . /app
-COPY docker/entrypoint.sh /app
-COPY docker/wait-for-postgres.sh /app
+# COPY . /app
+COPY docker/entrypoint.sh /appbuild
+COPY docker/wait-for-postgres.sh /appbuild
 
 # Following commands updated to fix missing entrypoint.sh build error
-RUN chmod +x /app/entrypoint.sh
-RUN dos2unix /app/entrypoint.sh
+RUN chmod +x /appbuild/entrypoint.sh
+RUN dos2unix /appbuild/entrypoint.sh
 
-RUN chmod +x /app/wait-for-postgres.sh
-RUN dos2unix /app/wait-for-postgres.sh
-
-RUN chmod +x /app/entrypoint.sh
-RUN dos2unix /app/entrypoint.sh
-
-RUN chmod +x /app/wait-for-postgres.sh
-RUN dos2unix /app/wait-for-postgres.sh
+RUN chmod +x /appbuild/wait-for-postgres.sh
+RUN dos2unix /appbuild/wait-for-postgres.sh
 
 ENTRYPOINT ["./entrypoint.sh"]
