@@ -1,6 +1,7 @@
+version: '3'
 services:
   crm-app:
-    build: .
+    image: djcrm:1
     container_name: crm-app
     environment:
       - DBNAME=crm
@@ -9,19 +10,18 @@ services:
       - DBHOST=crm-db
       - DBPORT=5432
       - ENV_TYPE=development
-      - SECRET_KEY=mco934$@)NHUYTC%6789
+      #Following veriables   are needed for the docker image
+      - SECRET_KEY= mco934$@)NHUYTC%6789
       - DEFAULT_FROM_EMAIL=your_email@example.com
       - ADMIN_EMAIL=your_admin_email@example.com
-      - CELERY_BROKER_URL=celery.url
-      - CELERY_RESULT_BACKEND=celery.backend.url
-      - DOMAIN_NAME=DOMAIN.NAME
-      - SWAGGER_ROOT_URL=SWAGGER.ROOT.URL
+      - CELERY_BROKER_URL="celery.url"
+      - CELERY_RESULT_BACKEND="celery.backend.url"
+      - DOMAIN_NAME="DOMAIN.NAME"
+      - SWAGGER_ROOT_URL="SWAGGER.ROOT.URL"
     depends_on:
       - crm-db
     ports:
       - 8000:8000
-    volumes:
-      - .:/app
     networks:
       - nw
 
@@ -35,7 +35,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - C:/postgresql:/var/run/postgresql
+      - C:/postgresql:/var/run/postgresql # Updated local file path for windows hosts
     networks:
       - nw
 
