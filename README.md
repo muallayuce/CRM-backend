@@ -96,7 +96,7 @@ pip install -r requirements.txt
 
 ### Docker / docker-compose
 
-Clone the project code from github.
+Clone the project code from github to C:\Django-CRM\ folder.
 Download docker from https://www.docker.com/products/docker-desktop/ 
 Make sure your docker desktop application running.
 
