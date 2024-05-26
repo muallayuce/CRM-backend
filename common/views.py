@@ -64,6 +64,9 @@ from opportunity.serializer import OpportunitySerializer
 from teams.models import Teams
 from teams.serializer import TeamsSerializer
 
+from .forms import UserRegistrationForm
+
+
 class GetTeamsAndUsersView(APIView):
 
     permission_classes = (IsAuthenticated,)
@@ -924,3 +927,16 @@ class GoogleLoginView(APIView):
         response['refresh_token'] = str(token)
         response['user_id'] = user.id
         return Response(response)
+
+def register(request):
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            new_user = form.save(commit=False)
+            new_user.set_password(form.cleaned_data['password'])
+            new_user.save()
+            login(request, new_user)
+            return redirect('leads')
+    else:
+        form = UserRegistrationForm()
+    return render(request, 'registration/register.html', {'form': form})
