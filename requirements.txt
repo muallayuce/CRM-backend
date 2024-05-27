@@ -21,4 +21,4 @@ django-phonenumber-field
 arrow
 phonenumbers
 
-drf_yasg==1.21.7
+drf_yasg
