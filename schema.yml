@@ -1739,11 +1739,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/OrgProfileCreate'
           description: ''
+  /api/admin/:
     put:
       operationId: org_update
       description: Update organization information
       tags:
-      - org
+      - admin
       requestBody:
         content:
           application/json:
