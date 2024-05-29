@@ -1,7 +1,30 @@
 # auth_app/serializers.py
 from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
+#from django.contrib.auth.models import User
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
+
+User=get_user_model()
+
+class RegisterSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ['email', 'password']
+
+    def create(self, validated_data):
+        user = User(email=validated_data['email'])
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with this email already exists.")
+        return value
+    
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()

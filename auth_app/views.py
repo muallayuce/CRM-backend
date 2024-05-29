@@ -3,11 +3,74 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
-from .serializers import LoginSerializer
+from .serializers import LoginSerializer, RegisterSerializer
 from drf_spectacular.utils import extend_schema
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class RegisterView(APIView):
+    """
+    User signup view
+    """
+    @extend_schema(
+        description="User signup",
+        request=RegisterSerializer,
+        responses={
+            201: {
+                "description": "Successful signup",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "email": {"type": "string"},
+                                "user_id": {"type": "integer"}
+                            },
+                            "required": ["email", "user_id"]
+                        }
+                    }
+                }
+            },
+            400: {
+                "description": "Bad request",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "detail": {"type": "string"}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    )
+    def post(self, request):
+        # Log the start of the method
+        logger.debug('Registration request received with data: %s', request.data)
+        
+        # Create a serializer instance
+        serializer = RegisterSerializer(data=request.data)
+        
+        # Check if serializer is valid
+        if serializer.is_valid():
+            # Save the user
+            user = serializer.save()
+            response = {
+                "email": user.email,
+                "user_id": user.id
+            }
+            logger.info('User registered successfully: %s', user.email)
+            return Response(response, status=status.HTTP_201_CREATED)
+        else:
+            # Log invalid data
+            logger.error('Invalid data during registration: %s', serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        
 
 class LoginView(APIView):
     """
