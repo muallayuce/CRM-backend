@@ -18,6 +18,8 @@ from wagtail import urls as wagtail_urls
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
 
+
+
 app_name = "crm"
 
 urlpatterns = [
@@ -26,6 +28,7 @@ urlpatterns = [
         TemplateView.as_view(template_name="healthz.html"),
         name="healthz",
     ),
+    
     path("api/", include("common.app_urls", namespace="common_urls")),
     path(
         "logout/", views.LogoutView.as_view(), {"next_page": "/login/"}, name="logout"

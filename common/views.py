@@ -2,6 +2,8 @@ import json
 import secrets
 from multiprocessing import context
 from re import template
+
+from django.http import Http404
 from common.swagger_params1 import organization_params
 import requests
 from django.contrib.auth.base_user import BaseUserManager
@@ -64,6 +66,8 @@ from opportunity.serializer import OpportunitySerializer
 from teams.models import Teams
 from teams.serializer import TeamsSerializer
 
+
+
 class GetTeamsAndUsersView(APIView):
 
     permission_classes = (IsAuthenticated,)
@@ -87,6 +91,12 @@ class UsersListView(APIView, LimitOffsetPagination):
     permission_classes = (IsAuthenticated,)
     @extend_schema(parameters=swagger_params1.organization_params,request=UserCreateSwaggerSerializer)
     def post(self, request, format=None):
+        if not request.profile:
+            return Response(
+                {"error": True, "errors": "User profile not found"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         print(request.profile.role, request.user.is_superuser)
         if self.request.profile.role != "ADMIN" and not self.request.user.is_superuser:
             return Response(
@@ -141,13 +151,30 @@ class UsersListView(APIView, LimitOffsetPagination):
 
     @extend_schema(parameters=swagger_params1.user_list_params)
     def get(self, request, format=None):
-        if self.request.profile.role != "ADMIN" and not self.request.user.is_superuser:
+        # Ensure the user is authenticated
+        if not request.user.is_authenticated:
+            return Response(
+                {"error": True, "errors": "Authentication required"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        # Check if the user has a profile
+        if not hasattr(request, 'profile') or not request.profile:
+            return Response(
+                {"error": True, "errors": "User profile not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Check if the user is an admin or superuser
+        if request.profile.role != "ADMIN" and not request.user.is_superuser:
             return Response(
                 {"error": True, "errors": "Permission Denied"},
                 status=status.HTTP_403_FORBIDDEN,
             )
+
         queryset = Profile.objects.filter(org=request.profile.org).order_by("-id")
         params = request.query_params
+
         if params:
             if params.get("email"):
                 queryset = queryset.filter(user__email__icontains=params.get("email"))
@@ -197,7 +224,7 @@ class UsersListView(APIView, LimitOffsetPagination):
 
         context["admin_email"] = settings.ADMIN_EMAIL
         context["roles"] = ROLES
-        context["status"] = [("True", "Active"), ("False", "In Active")]
+        context["status"] = [("True", "Active"), ("False", "Inactive")]
         return Response(context)
 
 
