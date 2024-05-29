@@ -2,7 +2,7 @@ import json
 import secrets
 from multiprocessing import context
 from re import template
-
+from common.swagger_params1 import organization_params
 import requests
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.hashers import make_password
@@ -431,12 +431,18 @@ class OrgProfileCreateView(APIView):
 
 class ProfileView(APIView):
     permission_classes = (IsAuthenticated,)
-
-    @extend_schema(parameters=swagger_params1.organization_params)
+ 
+    @extend_schema(
+        parameters=organization_params,
+        responses={200: ProfileSerializer}
+    )
     def get(self, request, format=None):
-        # profile=Profile.objects.get(user=request.user)
-        context = {}
-        context["user_obj"] = ProfileSerializer(self.request.profile).data
+        org = request.headers.get('org')
+        # You can use 'org' in your logic if necessary
+        # For example, filter the profile based on 'org' if required
+ 
+        profile = Profile.objects.get(user=request.user)
+        context = {"user_obj": ProfileSerializer(profile).data}
         return Response(context, status=status.HTTP_200_OK)
 
 class DocumentListView(APIView, LimitOffsetPagination):
