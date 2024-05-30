@@ -14,7 +14,7 @@ from django.contrib.auth.hashers import make_password
 from django.db import transaction
 from django.db.models import Q
 from django.http.response import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
@@ -63,7 +63,6 @@ from opportunity.models import Opportunity
 from opportunity.serializer import OpportunitySerializer
 from teams.models import Teams
 from teams.serializer import TeamsSerializer
-
 
 class GetTeamsAndUsersView(APIView):
 
