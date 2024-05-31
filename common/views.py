@@ -938,6 +938,7 @@ class GoogleLoginView(APIView):
         response['user_id'] = user.id
         return Response(response)
 
+# VIew for sign up condition checking
 class CheckUserCountView(APIView):
     permission_classes = [AllowAny]
 
