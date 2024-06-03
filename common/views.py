@@ -458,20 +458,24 @@ class OrgProfileCreateView(APIView):
 
 class ProfileView(APIView):
     permission_classes = (IsAuthenticated,)
- 
+
     @extend_schema(
         parameters=organization_params,
         responses={200: ProfileSerializer}
     )
     def get(self, request, format=None):
         org = request.headers.get('org')
-        # You can use 'org' in your logic if necessary
-        # For example, filter the profile based on 'org' if required
- 
-        profile = Profile.objects.get(user=request.user)
-        context = {"user_obj": ProfileSerializer(profile).data}
-        return Response(context, status=status.HTTP_200_OK)
+        print(f"Organization Header: {org}")
 
+        try:
+            profile = Profile.objects.get(user=request.user)
+            context = {"user_obj": ProfileSerializer(profile).data}
+            return Response(context, status=status.HTTP_200_OK)
+        except Profile.DoesNotExist:
+            return Response({"detail": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(f"Error: {e}")
+            return Response({"detail": "An error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 class DocumentListView(APIView, LimitOffsetPagination):
     #authentication_classes = (CustomDualAuthentication,)
     permission_classes = (IsAuthenticated,)
