@@ -10,9 +10,15 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='org',
-            name='is_google_auth',
-            field=models.BooleanField(default=False),
+        migrations.CreateModel(
+            name='GoogleAuth',
+            fields=[
+                ('is_google_auth', models.BooleanField(default=False)),
+            ],
+            options={
+                'verbose_name': 'GoogleAuth',
+                'verbose_name_plural': 'GoogleAuth',
+                'db_table': 'google_auth',            
+            },
         ),
     ]

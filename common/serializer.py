@@ -14,6 +14,7 @@ from common.models import (
     Comment,
     Document,
     Org,
+    GoogleAuth,
     Profile,
     User,
 )
@@ -112,6 +113,15 @@ class OrgProfileUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Org
+        fields = ["is_google_auth"]
+
+class GoogleAuthUpdater(serializers.ModelSerializer):
+    """
+    It is for updating the is_google_auth field of an organization
+    """
+
+    class Meta:
+        model = GoogleAuth
         fields = ["is_google_auth"]
 
 

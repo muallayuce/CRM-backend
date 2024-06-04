@@ -139,6 +139,18 @@ class Org(BaseModel):
 
     def __str__(self):
         return str(self.name)
+    
+    
+class GoogleAuth(BaseModel):
+    is_google_auth = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "GoogleAuth"
+        verbose_name_plural = "GoogleAuth"
+        db_table = "google_auth"
+
+    def __str__(self):
+        return str(self.name)
 
 
 # class User(AbstractBaseUser, PermissionsMixin):
