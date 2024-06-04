@@ -28,7 +28,7 @@ from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schem
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -937,3 +937,11 @@ class GoogleLoginView(APIView):
         response['refresh_token'] = str(token)
         response['user_id'] = user.id
         return Response(response)
+
+# VIew for sign up condition checking
+class CheckUserCountView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        user_count = User.objects.count()
+        return Response({'user_count': user_count})
