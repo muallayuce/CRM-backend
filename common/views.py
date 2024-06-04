@@ -942,6 +942,7 @@ class GoogleLoginView(APIView):
 class CheckUserCountView(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(description="Checking users in the database are exist to choose form", tags=["auth"])
     def get(self, request):
         user_count = User.objects.count()
         return Response({'user_count': user_count})
