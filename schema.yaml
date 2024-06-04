@@ -789,7 +789,7 @@ paths:
           schema:
             type: string
         - in: query
-          name: pincode
+          name: postcode
           schema:
             type: string
         - in: query
@@ -4968,7 +4968,7 @@ components:
           type: string
           minLength: 1
           maxLength: 1000
-        pincode:
+        postcode:
           type: string
           minLength: 1
           maxLength: 1000
@@ -4983,7 +4983,7 @@ components:
         - country
         - email
         - phone
-        - pincode
+        - postcode
         - role
         - state
         - street
