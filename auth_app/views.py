@@ -2,12 +2,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
 from .serializers import LoginSerializer, RegisterSerializer
 from drf_spectacular.utils import extend_schema
 import logging
 
+
 logger = logging.getLogger(__name__)
+User = get_user_model()
 
 
 class RegisterView(APIView):
@@ -51,6 +53,12 @@ class RegisterView(APIView):
     def post(self, request):
         # Log the start of the method
         logger.debug('Registration request received with data: %s', request.data)
+
+        # Check if any user exists in the database
+        if User.objects.exists():
+            error_message = "Registration is disabled as there is already a registered user."
+            logger.error(error_message)
+            return Response({"detail": error_message}, status=status.HTTP_400_BAD_REQUEST)
         
         # Create a serializer instance
         serializer = RegisterSerializer(data=request.data)

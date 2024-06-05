@@ -1,33 +1,38 @@
 import jwt
 from django.conf import settings
 from django.contrib.auth import logout
-from django.core.exceptions import ValidationError,PermissionDenied
+from django.core.exceptions import ValidationError, PermissionDenied
 from rest_framework import status
 from rest_framework.response import Response
 from crum import get_current_user
 from django.utils.functional import SimpleLazyObject
+from rest_framework.exceptions import AuthenticationFailed
 
 from common.models import Org, Profile, User
 
+def set_profile_request(request, org, token):
+    # Decode the token
+    decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGO])
 
-# def set_profile_request(request, org, token):
-#     # we are decoding the token
-#     decoded = jwt.decode(token, (settings.SECRET_KEY), algorithms=[settings.JWT_ALGO])
+    # Get the user based on the decoded user_id
+    try:
+        request.user = User.objects.get(id=decoded["user_id"])
+    except User.DoesNotExist:
+        request.user = None
 
-#     request.user = User.objects.get(id=decoded["user_id"])
+    if request.user:
+        # Retrieve the profile based on user, organization, and active status
+        try:
+            request.profile = Profile.objects.get(user=request.user, org=org, is_active=True)
+            request.profile.role = "ADMIN"
+            request.profile.save()
+        except Profile.DoesNotExist:
+            request.profile = None
 
-#     if request.user:
-#         request.profile = Profile.objects.get(
-#             user=request.user, org=org, is_active=True
-#         )
-#         request.profile.role = "ADMIN"
-#         request.profile.save()
-#         if request.profile is None:
-#             logout(request)
-#             return Response(
-#                 {"error": False},
-#                 status=status.HTTP_200_OK,
-            # )
+    # If profile is not found, logout and return an error response
+    if not request.profile:
+        logout(request)
+        return Response({"error": False}, status=status.HTTP_200_OK)
 
 def get_actual_value(request):
     if request.user is None:

@@ -277,7 +277,7 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
     "PREPROCESSING_HOOKS": ["common.custom_openapi.preprocessing_filter_spec"],
-    
+
 }
 
 # JWT_SETTINGS = {
@@ -314,7 +314,7 @@ DOMAIN_NAME = os.getenv("DOMAIN_NAME")
 
 
 SIMPLE_JWT = {
-    #'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1),
+    # 'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1),
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=365),
     "ROTATE_REFRESH_TOKENS": False,
