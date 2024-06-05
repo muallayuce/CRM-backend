@@ -16,6 +16,7 @@ urlpatterns = [
     # GoogleLoginView
     path("auth/google/", views.GoogleLoginView.as_view()),
     path("org/", views.OrgProfileCreateView.as_view()),
+    path("admin/", views.AdminProfileView.as_view()),
     path("profile/", views.ProfileView.as_view()),
     path("users/get-teams-and-users/", views.GetTeamsAndUsersView.as_view()),
     path("users/", views.UsersListView.as_view()),
@@ -25,4 +26,5 @@ urlpatterns = [
     path("api-settings/", views.DomainList.as_view()),
     path("api-settings/<str:pk>/", views.DomainDetailView.as_view()),
     path("user/<str:pk>/status/", views.UserStatusView.as_view()),
+    path('check-user-count/', views.CheckUserCountView.as_view(), name='check-user-count'),
 ]

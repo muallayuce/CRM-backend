@@ -20,3 +20,5 @@ Redis
 django-phonenumber-field
 arrow
 phonenumbers
+
+drf_yasg
