@@ -12,6 +12,11 @@ class Invitation(models.Model):
     expires_at = models.DateTimeField(null=True, blank=True)
     used = models.BooleanField(False)
 
+    class Meta:
+        verbose_name = "Invitation"
+        verbose_name_plural = "Invitations"
+        db_table = 'invitations'
+
     def __str__(self):
         return f"Invitation from {self.inviter} to {self.invitee_email}"
 

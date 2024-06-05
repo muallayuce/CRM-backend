@@ -26,5 +26,10 @@ class Migration(migrations.Migration):
                 ('used', models.BooleanField(verbose_name=False)),
                 ('inviter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sent_invitations', to=settings.AUTH_USER_MODEL)),
             ],
+            options={
+                'verbose_name': 'Invitation',
+                'verbose_name_plural': 'Invitations',
+                'db_table': 'invitations',
+            },
         ),
     ]
