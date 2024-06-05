@@ -49,7 +49,7 @@ contact_create_post_params = [
     OpenApiParameter("street", OpenApiTypes.STR,OpenApiParameter.QUERY),
     OpenApiParameter("city", OpenApiTypes.STR,OpenApiParameter.QUERY),
     OpenApiParameter("state", OpenApiTypes.STR,OpenApiParameter.QUERY),
-    OpenApiParameter("pincode", OpenApiTypes.STR,OpenApiParameter.QUERY),
+    OpenApiParameter("postcode", OpenApiTypes.STR,OpenApiParameter.QUERY),
     OpenApiParameter("country", OpenApiTypes.STR,OpenApiParameter.QUERY),
     OpenApiParameter("description", OpenApiTypes.STR,OpenApiParameter.QUERY),
     OpenApiParameter("linked_in_url", OpenApiTypes.STR,OpenApiParameter.QUERY),

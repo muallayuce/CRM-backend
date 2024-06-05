@@ -2,7 +2,11 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
 
 organization_params_in_header = OpenApiParameter(
-    "org", OpenApiTypes.STR, OpenApiParameter.HEADER
+    name="org",
+    type=OpenApiTypes.STR,
+    location=OpenApiParameter.HEADER,
+    required=False,
+    description="Organization Header"
 )
 
 organization_params = [
