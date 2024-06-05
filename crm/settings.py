@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     "events",
     "teams",
     "auth_app",
+    "invitation",
 ]
 
 MIDDLEWARE = [

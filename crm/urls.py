@@ -11,8 +11,8 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
-from drf_yasg import openapi
-from drf_yasg.views import get_schema_view
+# from drf_yasg import openapi
+# from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from wagtail import urls as wagtail_urls
 from wagtail.admin import urls as wagtailadmin_urls
@@ -48,6 +48,7 @@ urlpatterns = [
     ),
     path("", include(wagtail_urls)),
     path('api/auth/', include('auth_app.urls')),
+    path('api/invitation/', include('invitation.urls')),
 ]
 
 
