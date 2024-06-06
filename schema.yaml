@@ -1909,14 +1909,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrgProfileCreate'
-          description: ''
+                $ref: "#/components/schemas/OrgProfileCreate"
+          description: ""
   /api/admin/:
     put:
       operationId: org_update
       description: Update organization information
       tags:
-      - admin
+        - admin
       requestBody:
         content:
           application/json:
@@ -1929,8 +1929,8 @@ paths:
                   type: boolean
                   default: false
               required:
-              - name
-              - is_google_auth
+                - name
+                - is_google_auth
           application/x-www-form-urlencoded:
             schema:
               type: object
@@ -1941,8 +1941,8 @@ paths:
                   type: boolean
                   default: false
               required:
-              - name
-              - is_google_auth
+                - name
+                - is_google_auth
           multipart/form-data:
             schema:
               type: object
@@ -1953,16 +1953,16 @@ paths:
                   type: boolean
                   default: false
               required:
-              - name
-              - is_google_auth
+                - name
+                - is_google_auth
         required: true
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrgProfileCreate'
-          description: ''
+                $ref: "#/components/schemas/OrgProfileCreate"
+          description: ""
   /api/profile/:
   get:
     operationId: profile_retrieve
@@ -4821,6 +4821,8 @@ components:
       description: |-
         * `ADMIN` - ADMIN
         * `USER` - USER
+        * `SALES MANAGER` - SALES MANAGER
+        * `MARKETING MANAGER` - MARKETING MANAGER
     SocialLoginRequest:
       type: object
       properties:
