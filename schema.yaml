@@ -4821,8 +4821,6 @@ components:
       description: |-
         * `ADMIN` - ADMIN
         * `USER` - USER
-        * `SALES MANAGER` - SALES MANAGER
-        * `MARKETING MANAGER` - MARKETING MANAGER
     SocialLoginRequest:
       type: object
       properties:
