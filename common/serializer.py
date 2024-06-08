@@ -189,7 +189,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "email", "profile_pic"]
+        fields = fields = ["id", "email", "profile_pic"] 
 
 
 class AddressSerializer(serializers.ModelSerializer):
