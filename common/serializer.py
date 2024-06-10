@@ -17,6 +17,7 @@ from common.models import (
     Profile,
     User,
 )
+from common.utils import COUNTRIES
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
@@ -116,11 +117,11 @@ class OrgProfileUpdateSerializer(serializers.ModelSerializer):
 
 
 class BillingAddressSerializer(serializers.ModelSerializer):
-    country = serializers.SerializerMethodField()
+    #existing code:
+    # country = serializers.SerializerMethodField()
 
-    def get_country(self, obj):
-        return obj.get_country_display()
-
+    #new:
+    country = serializers.ChoiceField(choices=COUNTRIES)
     class Meta:
         model = Address
         fields = ("address_line", "street", "city",
@@ -138,7 +139,6 @@ class BillingAddressSerializer(serializers.ModelSerializer):
             self.fields["state"].required = True
             self.fields["postcode"].required = True
             self.fields["country"].required = True
-
 
 class CreateUserSerializer(serializers.ModelSerializer):
 
@@ -190,7 +190,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = fields = ["id", "email", "profile_pic"] 
+        fields = ["id", "email", "profile_pic"] 
 
 
 class AddressSerializer(serializers.ModelSerializer):

@@ -116,8 +116,6 @@ class Address(BaseModel):
                 address += self.get_country_display()
         return address
 
-
-
 def generate_unique_key():
     return str(uuid.uuid4())
 
