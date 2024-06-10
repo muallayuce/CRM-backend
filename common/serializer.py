@@ -23,7 +23,7 @@ from common.models import (
 class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Org
-        fields = ("id", "name","api_key","is_google_auth")
+        fields = ("id", "name","api_key")
 
 
 class SocialLoginSerializer(serializers.Serializer):
@@ -71,7 +71,7 @@ class OrgProfileCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Org
-        fields = ["name","is_google_auth"]
+        fields = ["name"]
         extra_kwargs = {
             "name": {"required": True}
         }
@@ -106,18 +106,10 @@ class ShowOrganizationListSerializer(serializers.ModelSerializer):
             "org",
         )
 
-class OrgProfileUpdateSerializer(serializers.ModelSerializer):
-    """
-    It is for updating the is_google_auth field of an organization
-    """
-
-    class Meta:
-        model = Org
-        fields = ["is_google_auth"]
 
 class GoogleAuthUpdater(serializers.ModelSerializer):
     """
-    It is for updating the is_google_auth field of an organization
+    It is for updating the is_google_auth field 
     """
 
     class Meta:

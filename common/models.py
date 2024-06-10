@@ -125,7 +125,7 @@ class Org(BaseModel):
         default=generate_unique_key, unique=True, editable=False
     )
     is_active = models.BooleanField(default=True)
-    is_google_auth = models.BooleanField(default=False)
+    
 
     # address = models.TextField(blank=True, null=True)
     # user_limit = models.IntegerField(default=5)
@@ -148,6 +148,7 @@ class GoogleAuth(BaseModel):
         verbose_name = "GoogleAuth"
         verbose_name_plural = "GoogleAuth"
         db_table = "google_auth"
+        ordering = ("-created_at",)
 
     def __str__(self):
         return str(self.name)
