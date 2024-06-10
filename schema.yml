@@ -2113,6 +2113,29 @@ paths:
     post:
       operationId: org_create
       description: Organization and profile Creation api
+      tags:
+      - org
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrgProfileCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrgProfileCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrgProfileCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrgProfileCreate'
+          description: ''
   /api/admin/:
     get:
       operationId: auth_retrieve
