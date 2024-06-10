@@ -138,6 +138,7 @@ class UsersListView(APIView, LimitOffsetPagination):
                         role=params.get("role"),
                         address=address_obj,
                         org=request.profile.org,
+                        phone=params.get("phone"), #this line is needed to create user with phone number being provided.      
                     )
 
                     # send_email_to_new_user.delay(
@@ -305,7 +306,7 @@ class UserDetailView(APIView):
             )
         serializer = CreateUserSerializer(
             data=params, instance=profile.user, org=request.profile.org
-        )
+        ) 
         address_serializer = BillingAddressSerializer(
             instance=address_obj, data=params)
         profile_serializer = CreateProfileSerializer(
@@ -328,8 +329,17 @@ class UserDetailView(APIView):
             user = serializer.save()
             user.email = user.email
             user.save()
+
+        #Existing code
+        #if profile_serializer.is_valid():
+        #   profile = profile_serializer.save()
+
+        #So that address id in address table will be linked to address id in profile table
         if profile_serializer.is_valid():
             profile = profile_serializer.save()
+            profile.address = address_obj  
+            profile.save()
+
             return Response(
                 {"error": False, "message": "User Updated Successfully"},
                 status=status.HTTP_200_OK,

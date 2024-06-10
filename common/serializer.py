@@ -147,6 +147,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
         fields = (
             "email",
             "profile_pic",
+            
         )
 
     def __init__(self, *args, **kwargs):
@@ -213,9 +214,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "phone",
             "date_of_joining",
             "is_active",
-        )
-
-
+        ) 
 class AttachmentsSerializer(serializers.ModelSerializer):
     file_path = serializers.SerializerMethodField()
 

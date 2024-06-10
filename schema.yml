@@ -2274,7 +2274,7 @@ paths:
           schema:
             type: string
         - in: query
-          name: pincode
+          name: postcode
           schema:
             type: string
         - in: query
