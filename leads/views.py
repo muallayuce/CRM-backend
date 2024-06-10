@@ -323,6 +323,8 @@ class LeadDetailView(APIView):
         return context
 
     @extend_schema(tags=["Leads"], parameters=swagger_params1.organization_params, description="Lead Detail")
+    @sales_access_required
+    @marketing_access_required
     def get(self, request, pk, **kwargs):
         self.lead_obj = self.get_object(pk)
         context = self.get_context_data(**kwargs)
