@@ -36,17 +36,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=uuid.uuid4, unique=True, editable=False, db_index=True, primary_key=True
     )
     email = models.EmailField(_("email address"), blank=True, unique=True)
-    profile_pic = models.CharField(
-        max_length=1000, null=True, blank=True
-    )
+    profile_pic = models.CharField(max_length=1000, null=True, blank=True)
     activation_key = models.CharField(max_length=150, null=True, blank=True)
     key_expires = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(_('staff status'),default=False)
+    is_staff = models.BooleanField(_('staff status'), default=False)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
-
 
     objects = UserManager()
 
