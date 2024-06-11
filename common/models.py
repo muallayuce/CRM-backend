@@ -81,7 +81,7 @@ class Address(BaseModel):
 
     def __str__(self):
         return self.city if self.city else ""
-
+    
     def get_complete_address(self):
         address = ""
         if self.address_line:
@@ -187,7 +187,8 @@ class Org(BaseModel):
 
 
 class Profile(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    #user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     org = models.ForeignKey(
         Org, null=True, on_delete=models.CASCADE, blank=True, related_name="user_org"
     )

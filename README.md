@@ -126,6 +126,15 @@ python manage.py runserver
 - After running API, Go to Frontend UI [React CRM](https://github.com/MicroPyramid/react-crm "React CRM") project to configure Fronted UI to interact with API.
 
 
+## Generating schemas file for swagger documentation
+
+To be able to generate schema automatically you should avoid 'response' parameter in your views @extend_schema. In case of using docker automatical schema generation should be running with runned docker container:
+
+```
+docker exec -it crm-app /bin/bash
+python3 manage.py spectacular --file schema.yaml
+```
+
 ## Start celery worker in another terminal window
 
 celery -A crm worker --loglevel=INFO
