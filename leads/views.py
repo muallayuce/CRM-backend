@@ -1,3 +1,4 @@
+import logging
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -46,6 +47,8 @@ from leads.tasks import (
 )
 from teams.models import Teams
 from teams.serializer import TeamsSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class LeadListView(APIView, LimitOffsetPagination):
@@ -460,9 +463,24 @@ class LeadDetailView(APIView):
     @marketing_access_required
     def delete(self, request, pk, **kwargs):
         self.object = self.get_object(pk)
-        if (request.profile.role == "ADMIN" or request.user.is_superuser or request.profile.user == self.object.created_by) and self.object.org == request.profile.org:
+
+        user_profile = getattr(request, 'profile', None)
+        user = getattr(request, 'user', None)
+
+        if user_profile:
+            user_role = user_profile.role
+            user_org = user_profile.org
+        else:
+            user_role = user.role if user else None
+            user_org = user.org if user else None
+
+        logger.debug(f"user_role: {user_role}, user_org: {user_org}")
+        logger.debug(f"object created_by: {self.object.created_by}, object org: {self.object.org}")
+
+        if (user_role == "ADMIN" or (user and user.is_superuser) or (user and user == self.object.created_by)) and user_org == self.object.org:
             self.object.delete()
             return Response({"error": False, "message": "Lead deleted Successfully"}, status=status.HTTP_200_OK)
+
         return Response({"error": True, "errors": "You don't have permission to delete this lead"}, status=status.HTTP_403_FORBIDDEN)
 
 

@@ -41,8 +41,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     key_expires = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(_('staff status'), default=False)
-    has_sales_access = models.BooleanField(default=False)
-    has_marketing_access = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
