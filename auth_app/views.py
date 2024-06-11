@@ -18,37 +18,7 @@ class RegisterView(APIView):
     """
     @extend_schema(
         description="User signup",
-        request=RegisterSerializer,
-        responses={
-            201: {
-                "description": "Successful signup",
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "email": {"type": "string"},
-                                "user_id": {"type": "integer"}
-                            },
-                            "required": ["email", "user_id"]
-                        }
-                    }
-                }
-            },
-            400: {
-                "description": "Bad request",
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "detail": {"type": "string"}
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        request=RegisterSerializer
     )
     def post(self, request):
         # Log the start of the method
@@ -89,28 +59,7 @@ class LoginView(APIView):
 
     @extend_schema(
         description="User login",
-        request=LoginSerializer,
-        responses={
-            200: {
-                "description": "Successful login",
-                "examples": {
-                    "application/json": {
-                        "username": "user@example.com",
-                        "access_token": "some_access_token",
-                        "refresh_token": "some_refresh_token",
-                        "user_id": 1,
-                    }
-                }
-            },
-            401: {
-                "description": "Unauthorized",
-                "examples": {
-                    "application/json": {
-                        "detail": "Invalid credentials"
-                    }
-                }
-            }
-        }
+        request=LoginSerializer
     )
     def post(self, request):
         logger.debug('Login request received with data: %s', request.data)
