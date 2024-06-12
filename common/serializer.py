@@ -18,6 +18,7 @@ from common.models import (
     Profile,
     User,
 )
+from common.utils import COUNTRIES
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
@@ -118,11 +119,11 @@ class GoogleAuthUpdater(serializers.ModelSerializer):
 
 
 class BillingAddressSerializer(serializers.ModelSerializer):
-    country = serializers.SerializerMethodField()
+    #existing code:
+    # country = serializers.SerializerMethodField()
 
-    def get_country(self, obj):
-        return obj.get_country_display()
-
+    #new:
+    country = serializers.ChoiceField(choices=COUNTRIES)
     class Meta:
         model = Address
         fields = ("address_line", "street", "city",
@@ -141,7 +142,6 @@ class BillingAddressSerializer(serializers.ModelSerializer):
             self.fields["postcode"].required = True
             self.fields["country"].required = True
 
-
 class CreateUserSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -149,6 +149,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
         fields = (
             "email",
             "profile_pic",
+            
         )
 
     def __init__(self, *args, **kwargs):
@@ -191,7 +192,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "email", "profile_pic"]
+        fields = ["id", "email", "profile_pic"] 
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -215,9 +216,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "phone",
             "date_of_joining",
             "is_active",
-        )
-
-
+        ) 
 class AttachmentsSerializer(serializers.ModelSerializer):
     file_path = serializers.SerializerMethodField()
 
