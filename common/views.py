@@ -138,6 +138,7 @@ class UsersListView(APIView, LimitOffsetPagination):
                         role=params.get("role"),
                         address=address_obj,
                         org=request.profile.org,
+                        phone=params.get("phone"), #this line is needed to create user with phone number being provided.      
                     )
 
                     # send_email_to_new_user.delay(
@@ -229,6 +230,7 @@ class UsersListView(APIView, LimitOffsetPagination):
         context["roles"] = ROLES
         context["status"] = [("True", "Active"), ("False", "Inactive")]
         return Response(context)
+    
 
 
 class UserDetailView(APIView):
@@ -252,7 +254,7 @@ class UserDetailView(APIView):
             )
         if profile_obj.org != request.profile.org:
             return Response(
-                {"error": True, "errors": "User company doesnot match with header...."},
+                {"error": True, "errors": "User company does not match with header...."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         assigned_data = Profile.objects.filter(org=request.profile.org, is_active=True).values(
@@ -282,6 +284,11 @@ class UserDetailView(APIView):
         params = request.data
         profile = self.get_object(pk)
         address_obj = profile.address
+        if not self.request.user.is_authenticated:
+            return Response(
+                {"error": True, "errors": "Authentication required"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
         if (
             self.request.profile.role != "ADMIN"
             and not self.request.user.is_superuser
@@ -294,14 +301,14 @@ class UserDetailView(APIView):
 
         if profile.org != request.profile.org:
             return Response(
-                {"error": True, "errors": "User company doesnot match with header...."},
+                {"error": True, "errors": "User company does not match with header...."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         serializer = CreateUserSerializer(
             data=params, instance=profile.user, org=request.profile.org
-        )
+        ) 
         address_serializer = BillingAddressSerializer(
-            data=params, instance=address_obj)
+            instance=address_obj, data=params)
         profile_serializer = CreateProfileSerializer(
             data=params, instance=profile)
         data = {}
@@ -322,8 +329,17 @@ class UserDetailView(APIView):
             user = serializer.save()
             user.email = user.email
             user.save()
+
+        #Existing code
+        #if profile_serializer.is_valid():
+        #   profile = profile_serializer.save()
+
+        #So that address id in address table will be linked to address id in profile table
         if profile_serializer.is_valid():
             profile = profile_serializer.save()
+            profile.address = address_obj  
+            profile.save()
+
             return Response(
                 {"error": False, "message": "User Updated Successfully"},
                 status=status.HTTP_200_OK,
@@ -337,24 +353,51 @@ class UserDetailView(APIView):
         tags=["users"], parameters=swagger_params1.organization_params
     )
     def delete(self, request, pk, format=None):
+        # Check if the request is from an admin
         if self.request.profile.role != "ADMIN" and not self.request.profile.is_admin:
             return Response(
                 {"error": True, "errors": "Permission Denied"},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        self.object = self.get_object(pk)
-        if self.object.id == request.profile.id:
+
+        # Try to find the Profile by the given pk
+        try:
+            profile = Profile.objects.get(pk=pk)
+        except Profile.DoesNotExist:
+            profile = None
+
+        # If Profile is found, delete it (which will also delete the associated User)
+        if profile:
+            profile.delete()
+            return Response({"status": "success"}, status=status.HTTP_200_OK)
+
+        # If no Profile is found, try to find the User by the given pk
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response(
+                {"error": True, "errors": "User not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Check if the user is the same as the requester's user
+        if user.id == request.profile.user.id:
             return Response(
                 {"error": True, "errors": "Permission Denied"},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        deleted_by = self.request.profile.user.email
-        send_email_user_delete.delay(
-            self.object.user.email,
-            deleted_by=deleted_by,
-        )
-        self.object.delete()
+
+        # If User is found, delete it (which will also delete the associated Profile)
+        user.delete()
+
         return Response({"status": "success"}, status=status.HTTP_200_OK)
+ 
+    #deleted_by = self.request.profile.user.email
+    #  send_email_user_delete.delay(
+     #       self.object.user.email,
+      #      deleted_by=deleted_by,
+       # ) 
+    
 
 
 # check_header not working
@@ -401,8 +444,9 @@ class ApiHomeView(APIView):
             opportunities, many=True).data
         return Response(context, status=status.HTTP_200_OK)
 
+
 class AdminProfileView(APIView):
-    #authentication_classes = (CustomDualAuthentication,)
+    # authentication_classes = (CustomDualAuthentication,)
     permission_classes = (IsAuthenticated,)
 
     model1 = Org
@@ -421,12 +465,13 @@ class AdminProfileView(APIView):
         org_name = request.data.get('name')
         if not org_name:
             return Response({"error": True, "message": "Name is required.", "status": status.HTTP_400_BAD_REQUEST})
-        
+
         if not Org.objects.filter(name=org_name).exists():
             return Response({"error": True, "message": "Organization not found.", "status": status.HTTP_404_NOT_FOUND})
-        
+
         org = Org.objects.get(name=org_name)
-        serializer = OrgProfileUpdateSerializer(org, data=request.data, partial=True)
+        serializer = OrgProfileUpdateSerializer(
+            org, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response({"error": False, "message": "Organization updated successfully.", "org": serializer.data, "status": status.HTTP_200_OK})
@@ -1009,6 +1054,7 @@ class GoogleLoginView(APIView):
 class CheckUserCountView(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(description="Checking users in the database are exist to choose form", tags=["auth"])
     def get(self, request):
         user_count = User.objects.count()
         return Response({'user_count': user_count})
@@ -1017,4 +1063,3 @@ class CheckUserCountView(APIView):
 """ class AddressViewSet(viewsets.ModelViewSet):
     queryset = Address.objects.all()
     serializer_class = AddressSerializer """
-

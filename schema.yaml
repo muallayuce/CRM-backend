@@ -324,7 +324,6 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       tags:
       - Settings
       security:
@@ -339,7 +338,6 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       tags:
       - Settings
       requestBody:
@@ -372,7 +370,6 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       tags:
       - Settings
       security:
@@ -392,7 +389,6 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       tags:
       - Settings
       requestBody:
@@ -424,7 +420,6 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       tags:
       - Settings
       security:
@@ -455,6 +450,7 @@ paths:
       - {}
       responses:
         '200':
+        '200':
           description: No response body
   /api/auth/login:
     post:
@@ -479,26 +475,7 @@ paths:
       - {}
       responses:
         '200':
-          content:
-            application/json:
-              schema:
-                description: Successful login
-                examples:
-                  application/json:
-                    username: user@example.com
-                    access_token: some_access_token
-                    refresh_token: some_refresh_token
-                    user_id: 1
-          description: ''
-        '401':
-          content:
-            application/json:
-              schema:
-                description: Unauthorized
-                examples:
-                  application/json:
-                    detail: Invalid credentials
-          description: ''
+          description: No response body
   /api/auth/refresh-token/:
     post:
       operationId: auth_refresh_token_create
@@ -548,37 +525,8 @@ paths:
       - jwtAuth: []
       - {}
       responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                description: Successful signup
-                content:
-                  application/json:
-                    schema:
-                      type: object
-                      properties:
-                        email:
-                          type: string
-                        user_id:
-                          type: integer
-                      required:
-                      - email
-                      - user_id
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                description: Bad request
-                content:
-                  application/json:
-                    schema:
-                      type: object
-                      properties:
-                        detail:
-                          type: string
-          description: ''
+        '200':
+          description: No response body
   /api/cases/:
     get:
       operationId: cases_retrieve
@@ -811,8 +759,9 @@ paths:
   /api/check-user-count/:
     get:
       operationId: check_user_count_retrieve
+      description: Checking users in the database are exist to choose form
       tags:
-      - check-user-count
+      - auth
       security:
       - jwtAuth: []
       - {}
@@ -976,7 +925,7 @@ paths:
         schema:
           type: string
       - in: query
-        name: postcode
+        name: pincode
         schema:
           type: string
       - in: query
@@ -1124,7 +1073,6 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       tags:
       - dashboard
       security:
@@ -1140,7 +1088,6 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       - in: query
         name: shared_to
         schema:
@@ -1170,7 +1117,6 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       tags:
       - documents
       requestBody:
@@ -1203,7 +1149,6 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       tags:
       - documents
       security:
@@ -1223,7 +1168,6 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       tags:
       - documents
       requestBody:
@@ -1255,7 +1199,6 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       tags:
       - documents
       security:
@@ -2148,28 +2091,80 @@ paths:
       operationId: org_create
       description: Organization and profile Creation api
       tags:
-      - org
+        - org
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OrgProfileCreateRequest'
+              $ref: "#/components/schemas/OrgProfileCreateRequest"
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/OrgProfileCreateRequest'
+              $ref: "#/components/schemas/OrgProfileCreateRequest"
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/OrgProfileCreateRequest'
+              $ref: "#/components/schemas/OrgProfileCreateRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrgProfileCreate"
+          description: ""
+  /api/admin/:
+    put:
+      operationId: org_update
+      description: Update organization information
+      tags:
+        - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                is_google_auth:
+                  type: boolean
+                  default: false
+              required:
+                - name
+                - is_google_auth
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                is_google_auth:
+                  type: boolean
+                  default: false
+              required:
+                - name
+                - is_google_auth
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                is_google_auth:
+                  type: boolean
+                  default: false
+              required:
+                - name
+                - is_google_auth
         required: true
       security:
       - jwtAuth: []
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrgProfileCreate'
-          description: ''
+                $ref: "#/components/schemas/OrgProfileCreate"
+          description: ""
   /api/profile/:
     get:
       operationId: profile_retrieve
@@ -2178,18 +2173,13 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       tags:
       - profile
       security:
       - jwtAuth: []
       responses:
         '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Profile'
-          description: ''
+          description: No response body
   /api/tasks/:
     get:
       operationId: tasks_retrieve
@@ -2551,7 +2541,6 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       tags:
       - users
       security:
@@ -2571,7 +2560,6 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       tags:
       - users
       requestBody:
@@ -2603,7 +2591,6 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       tags:
       - users
       security:
@@ -2625,7 +2612,6 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       tags:
       - user
       requestBody:
@@ -2657,7 +2643,6 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       - in: query
         name: role
         schema:
@@ -2686,7 +2671,6 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       tags:
       - users
       requestBody:
@@ -2714,7 +2698,6 @@ paths:
         name: org
         schema:
           type: string
-        description: Organization Header
       tags:
       - users
       security:
@@ -5121,38 +5104,6 @@ components:
           type: boolean
       required:
       - name
-    Profile:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        user_details:
-          type: string
-          readOnly: true
-        role:
-          $ref: '#/components/schemas/RoleEnum'
-        address:
-          $ref: '#/components/schemas/Address'
-        has_marketing_access:
-          type: boolean
-        has_sales_access:
-          type: boolean
-        phone:
-          type: string
-          nullable: true
-          maxLength: 128
-        date_of_joining:
-          type: string
-          format: date
-          nullable: true
-        is_active:
-          type: boolean
-      required:
-      - address
-      - id
-      - user_details
     RegisterRequest:
       type: object
       properties:
@@ -5374,7 +5325,7 @@ components:
           type: string
           minLength: 1
           maxLength: 1000
-        postcode:
+        pincode:
           type: string
           minLength: 1
           maxLength: 1000
@@ -5389,7 +5340,7 @@ components:
       - country
       - email
       - phone
-      - postcode
+      - pincode
       - role
       - state
       - street
