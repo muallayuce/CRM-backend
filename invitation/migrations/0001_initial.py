@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
             name='Invitation',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('invitee_email', models.EmailField(max_length=254)),
+                ('invitee', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
                 ('token', models.CharField(max_length=255, unique=True)),
                 ('created_at', models.DateTimeField(default=django.utils.timezone.now)),
                 ('expires_at', models.DateTimeField(blank=True, null=True)),
