@@ -1,75 +1,43 @@
-from django.contrib.auth.mixins import AccessMixin
-from django.core.exceptions import PermissionDenied
+from rest_framework import permissions
+from common.models import Profile
 
 
-def sales_access_required(function):
-    """this function is a decorator used to authorize if a user has sales access"""
+class AdminPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        # Check if the user is authenticated
+        if request.user.is_authenticated:
+            try:
+                # Retrieve the profile associated with the user
+                profile = request.user.profile
+                # Allow GET and POST requests for users with 'ADMIN' role
+                if request.method in ['GET', 'POST'] and profile.role == 'ADMIN':
+                    return True
+                # Deny permission for other methods or non-admin users
+                else:
+                    return False
+            except Profile.DoesNotExist:
+                # If the profile does not exist, deny permission
+                return False
+        # Deny permission if user is not authenticated
+        return False
 
-    def wrap(request, *args, **kwargs):
-        if (
-            request.user.role == "ADMIN"
-            or request.user.is_superuser
-            or request.user.has_sales_access
-        ):
-            return function(request, *args, **kwargs)
-        raise PermissionDenied
-
-    return wrap
-
-
-def marketing_access_required(function):
-    """this function is a decorator used to authorize if a user has marketing access"""
-
-    def wrap(request, *args, **kwargs):
-        if (
-            request.user.role == "ADMIN"
-            or request.user.is_superuser
-            or request.user.has_marketing_access
-        ):
-            return function(request, *args, **kwargs)
-        raise PermissionDenied
-
-    return wrap
-
-
-class SalesAccessRequiredMixin(AccessMixin):
-    """Mixin used to authorize if a user has sales access"""
-
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return self.handle_no_permission()
-        self.raise_exception = True
-        if (
-            request.user.role == "ADMIN"
-            or request.user.is_superuser
-            or request.user.has_sales_access
-        ):
-            return super().dispatch(request, *args, **kwargs)
-        return self.handle_no_permission()
-
-
-class MarketingAccessRequiredMixin(AccessMixin):
-    """Mixin used to authorize if a user has marketing access"""
-
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return self.handle_no_permission()
-        self.raise_exception = True
-        if (
-            request.user.role == "ADMIN"
-            or request.user.is_superuser
-            or request.user.has_marketing_access
-        ):
-            return super().dispatch(request, *args, **kwargs)
-        return self.handle_no_permission()
-
-
-def admin_login_required(function):
-    """this function is a decorator used to authorize if a user is admin"""
-
-    def wrap(request, *args, **kwargs):
-        if request.user.role == "ADMIN" or request.user.is_superuser:
-            return function(request, *args, **kwargs)
-        raise PermissionDenied
-
-    return wrap
+    def has_object_permission(self, request, view, obj):
+        # Check if the user is authenticated and has a profile
+        if request.user.is_authenticated:
+            try:
+                # Retrieve the profile associated with the user
+                profile = request.user.profile
+                # Allow superusers full access to all objects
+                if request.user.is_superuser:
+                    return True
+                # Allow users with 'ADMIN' role access to objects
+                elif profile.role == 'ADMIN':
+                    return True
+                # Default deny for non-admin users
+                else:
+                    return False
+            except Profile.DoesNotExist:
+                # If the profile does not exist, deny permission
+                return False
+        # Deny permission if user is not authenticated
+        return False
