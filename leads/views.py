@@ -1,4 +1,6 @@
+import logging
 from django.db.models import Q
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
 from rest_framework import status
@@ -8,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import Account, Tags
+from common.access_decorators_mixins import marketing_access_required, sales_access_required
 from common.models import APISettings, Attachments, Comment, Profile
 
 #from common.external_auth import CustomDualAuthentication
@@ -44,6 +47,8 @@ from leads.tasks import (
 )
 from teams.models import Teams
 from teams.serializer import TeamsSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class LeadListView(APIView, LimitOffsetPagination):
@@ -256,10 +261,8 @@ class LeadListView(APIView, LimitOffsetPagination):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-
 class LeadDetailView(APIView):
     model = Lead
-    #authentication_classes = (CustomDualAuthentication,)
     permission_classes = (IsAuthenticated,)
 
     def get_object(self, pk):
@@ -268,179 +271,117 @@ class LeadDetailView(APIView):
     def get_context_data(self, **kwargs):
         params = self.request.query_params
         context = {}
-        user_assgn_list = [
-            assigned_to.id for assigned_to in self.lead_obj.assigned_to.all()
-        ]
+        user_assgn_list = [assigned_to.id for assigned_to in self.lead_obj.assigned_to.all()]
         if self.request.profile.user == self.lead_obj.created_by:
             user_assgn_list.append(self.request.profile.user)
         if self.request.profile.role != "ADMIN" and not self.request.user.is_superuser:
             if self.request.profile.id not in user_assgn_list:
-                return Response(
-                    {
-                        "error": True,
-                        "errors": "You do not have Permission to perform this action",
-                    },
-                    status=status.HTTP_403_FORBIDDEN,
-                )
+                return Response({"error": True, "errors": "You do not have Permission to perform this action"}, status=status.HTTP_403_FORBIDDEN)
 
         comments = Comment.objects.filter(lead=self.lead_obj).order_by("-id")
         attachments = Attachments.objects.filter(lead=self.lead_obj).order_by("-id")
         assigned_data = []
         for each in self.lead_obj.assigned_to.all():
-            assigned_dict = {}
-            assigned_dict["id"] = each.id
-            assigned_dict["name"] = each.user.email
+            assigned_dict = {"id": each.id, "name": each.user.email}
             assigned_data.append(assigned_dict)
 
         if self.request.user.is_superuser or self.request.profile.role == "ADMIN":
-            users_mention = list(
-                Profile.objects.filter(is_active=True, org=self.request.profile.org).values(
-                    "user__email"
-                )
-            )
+            users_mention = list(Profile.objects.filter(is_active=True, org=self.request.profile.org).values("user__email"))
         elif self.request.profile.user != self.lead_obj.created_by:
             users_mention = [{"username": self.lead_obj.created_by.username}]
         else:
-            users_mention = list(
-                self.lead_obj.assigned_to.all().values("user__email")
-            )
-        if self.request.profile.role == "ADMIN" or self.request.user.is_superuser:
-            users = Profile.objects.filter(
-                is_active=True, org=self.request.profile.org
-            ).order_by("user__email")
-        else:
-            users = Profile.objects.filter(role="ADMIN", org=self.request.profile.org).order_by(
-                "user__email"
-            )
-        user_assgn_list = [
-            assigned_to.id
-            for assigned_to in self.lead_obj.get_assigned_users_not_in_teams
-        ]
+            users_mention = list(self.lead_obj.assigned_to.all().values("user__email"))
 
+        if self.request.profile.role == "ADMIN" or self.request.user.is_superuser:
+            users = Profile.objects.filter(is_active=True, org=self.request.profile.org).order_by("user__email")
+        else:
+            users = Profile.objects.filter(role="ADMIN", org=self.request.profile.org).order_by("user__email")
+
+        user_assgn_list = [assigned_to.id for assigned_to in self.lead_obj.get_assigned_users_not_in_teams]
         if self.request.profile.user == self.lead_obj.created_by:
             user_assgn_list.append(self.request.profile.id)
         if self.request.profile.role != "ADMIN" and not self.request.user.is_superuser:
             if self.request.profile.id not in user_assgn_list:
-                return Response(
-                    {
-                        "error": True,
-                        "errors": "You do not have Permission to perform this action",
-                    },
-                    status=status.HTTP_403_FORBIDDEN,
-                )
+                return Response({"error": True, "errors": "You do not have Permission to perform this action"}, status=status.HTTP_403_FORBIDDEN)
+
         team_ids = [user.id for user in self.lead_obj.get_team_users]
         all_user_ids = [user.id for user in users]
         users_excluding_team_id = set(all_user_ids) - set(team_ids)
         users_excluding_team = Profile.objects.filter(id__in=users_excluding_team_id)
-        context.update(
-            {
-                "lead_obj": LeadSerializer(self.lead_obj).data,
-                "attachments": AttachmentsSerializer(attachments, many=True).data,
-                "comments": LeadCommentSerializer(comments, many=True).data,
-                "users_mention": users_mention,
-                "assigned_data": assigned_data,
-            }
-        )
+
+        context.update({
+            "lead_obj": LeadSerializer(self.lead_obj).data,
+            "attachments": AttachmentsSerializer(attachments, many=True).data,
+            "comments": LeadCommentSerializer(comments, many=True).data,
+            "users_mention": users_mention,
+            "assigned_data": assigned_data,
+        })
         context["users"] = ProfileSerializer(users, many=True).data
-        context["users_excluding_team"] = ProfileSerializer(
-            users_excluding_team, many=True
-        ).data
+        context["users_excluding_team"] = ProfileSerializer(users_excluding_team, many=True).data
         context["source"] = LEAD_SOURCE
         context["status"] = LEAD_STATUS
-        context["teams"] = TeamsSerializer(
-            Teams.objects.filter(org=self.request.profile.org), many=True
-        ).data
+        context["teams"] = TeamsSerializer(Teams.objects.filter(org=self.request.profile.org), many=True).data
         context["countries"] = COUNTRIES
 
         return context
 
-    @extend_schema(tags=["Leads"],parameters=swagger_params1.organization_params,description="Lead Detail")
+    @extend_schema(tags=["Leads"], parameters=swagger_params1.organization_params, description="Lead Detail")
+    @sales_access_required
+    @marketing_access_required
     def get(self, request, pk, **kwargs):
         self.lead_obj = self.get_object(pk)
         context = self.get_context_data(**kwargs)
         return Response(context)
 
-    @extend_schema(tags=["Leads"], parameters=swagger_params1.organization_params,request=LeadDetailEditSwaggerSerializer)
+    @extend_schema(tags=["Leads"], parameters=swagger_params1.organization_params, request=LeadDetailEditSwaggerSerializer)
+    @sales_access_required
+    @marketing_access_required
     def post(self, request, pk, **kwargs):
         params = request.data
-
         context = {}
         self.lead_obj = Lead.objects.get(pk=pk)
         if self.lead_obj.org != request.profile.org:
-            return Response(
-                {"error": True, "errors": "User company doesnot match with header...."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+            return Response({"error": True, "errors": "User company does not match with header...."}, status=status.HTTP_403_FORBIDDEN)
         if self.request.profile.role != "ADMIN" and not self.request.user.is_superuser:
-            if not (
-                (self.request.profile.user == self.lead_obj.created_by)
-                or (self.request.profile in self.lead_obj.assigned_to.all())
-            ):
-                return Response(
-                    {
-                        "error": True,
-                        "errors": "You do not have Permission to perform this action",
-                    },
-                    status=status.HTTP_403_FORBIDDEN,
-                )
+            if not ((self.request.profile.user == self.lead_obj.created_by) or (self.request.profile in self.lead_obj.assigned_to.all())):
+                return Response({"error": True, "errors": "You do not have Permission to perform this action"}, status=status.HTTP_403_FORBIDDEN)
         comment_serializer = CommentSerializer(data=params)
         if comment_serializer.is_valid():
             if params.get("comment"):
-                comment_serializer.save(
-                    lead_id=self.lead_obj.id,
-                    commented_by_id=self.request.profile.id,
-                )
+                comment_serializer.save(lead_id=self.lead_obj.id, commented_by_id=self.request.profile.id)
 
             if self.request.FILES.get("lead_attachment"):
                 attachment = Attachments()
                 attachment.created_by = User.objects.get(id=self.request.profile.user.id)
-
                 attachment.file_name = self.request.FILES.get("lead_attachment").name
                 attachment.lead = self.lead_obj
                 attachment.attachment = self.request.FILES.get("lead_attachment")
                 attachment.save()
 
         comments = Comment.objects.filter(lead__id=self.lead_obj.id).order_by("-id")
-        attachments = Attachments.objects.filter(lead__id=self.lead_obj.id).order_by(
-            "-id"
-        )
-        context.update(
-            {
-                "lead_obj": LeadSerializer(self.lead_obj).data,
-                "attachments": AttachmentsSerializer(attachments, many=True).data,
-                "comments": LeadCommentSerializer(comments, many=True).data,
-            }
-        )
+        attachments = Attachments.objects.filter(lead__id=self.lead_obj.id).order_by("-id")
+        context.update({
+            "lead_obj": LeadSerializer(self.lead_obj).data,
+            "attachments": AttachmentsSerializer(attachments, many=True).data,
+            "comments": LeadCommentSerializer(comments, many=True).data,
+        })
         return Response(context)
 
-    @extend_schema(tags=["Leads"], parameters=swagger_params1.organization_params,request=LeadCreateSwaggerSerializer)
+    @extend_schema(tags=["Leads"], parameters=swagger_params1.organization_params, request=LeadCreateSwaggerSerializer)
+    @sales_access_required
+    @marketing_access_required
     def put(self, request, pk, **kwargs):
         params = request.data
         self.lead_obj = self.get_object(pk)
         if self.lead_obj.org != request.profile.org:
-            return Response(
-                {
-                    "error": True,
-                    "errors": "User company does not match with header....",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        serializer = LeadCreateSerializer(
-            data=params,
-            instance=self.lead_obj,
-            request_obj=request,
-        )
+            return Response({"error": True, "errors": "User company does not match with header...."}, status=status.HTTP_403_FORBIDDEN)
+        serializer = LeadCreateSerializer(data=params, instance=self.lead_obj, request_obj=request)
         if serializer.is_valid():
             lead_obj = serializer.save()
-            previous_assigned_to_users = list(
-                lead_obj.assigned_to.all().values_list("id", flat=True)
-            )
+            previous_assigned_to_users = list(lead_obj.assigned_to.all().values_list("id", flat=True))
             lead_obj.tags.clear()
             if params.get("tags"):
                 tags = params.get("tags")
-                # for t in tags:
-                #     tag,_ = Tags.objects.get_or_create(name=t)
-                #     lead_obj.tags.add(tag)
                 for t in tags:
                     tag = Tags.objects.filter(slug=t.lower())
                     if tag.exists():
@@ -449,14 +390,9 @@ class LeadDetailView(APIView):
                         tag = Tags.objects.create(name=t)
                     lead_obj.tags.add(tag)
 
-            assigned_to_list = list(
-                lead_obj.assigned_to.all().values_list("id", flat=True)
-            )
+            assigned_to_list = list(lead_obj.assigned_to.all().values_list("id", flat=True))
             recipients = list(set(assigned_to_list) - set(previous_assigned_to_users))
-            send_email_to_assigned_user.delay(
-                recipients,
-                lead_obj.id,
-            )
+            send_email_to_assigned_user.delay(recipients, lead_obj.id)
             if request.FILES.get("lead_attachment"):
                 attachment = Attachments()
                 attachment.created_by = request.profile.user
@@ -467,9 +403,7 @@ class LeadDetailView(APIView):
 
             lead_obj.contacts.clear()
             if params.get("contacts"):
-                obj_contact = Contact.objects.filter(
-                    id=params.get("contacts"), org=request.profile.org
-                )
+                obj_contact = Contact.objects.filter(id=params.get("contacts"), org=request.profile.org)
                 lead_obj.contacts.add(obj_contact)
 
             lead_obj.teams.clear()
@@ -481,9 +415,7 @@ class LeadDetailView(APIView):
             lead_obj.assigned_to.clear()
             if params.get("assigned_to"):
                 assinged_to_list = params.get("assigned_to")
-                profiles = Profile.objects.filter(
-                    id__in=assinged_to_list, org=request.profile.org
-                )
+                profiles = Profile.objects.filter(id__in=assinged_to_list, org=request.profile.org)
                 lead_obj.assigned_to.add(*profiles)
 
             if params.get("status") == "converted":
@@ -514,52 +446,43 @@ class LeadDetailView(APIView):
                 for tag in lead_obj.tags.all():
                     account_object.tags.add(tag)
                 if params.get("assigned_to"):
-                    # account_object.assigned_to.add(*params.getlist('assigned_to'))
                     assigned_to_list = params.get("assigned_to")
                     recipients = assigned_to_list
-                    send_email_to_assigned_user.delay(
-                        recipients,
-                        lead_obj.id,
-                    )
+                    send_email_to_assigned_user.delay(recipients, lead_obj.id)
 
                 for comment in lead_obj.leads_comments.all():
                     comment.account = account_object
                     comment.save()
                 account_object.save()
-                return Response(
-                    {
-                        "error": False,
-                        "message": "Lead Converted to Account Successfully",
-                    },
-                    status=status.HTTP_200_OK,
-                )
-            return Response(
-                {"error": False, "message": "Lead updated Successfully"},
-                status=status.HTTP_200_OK,
-            )
-        return Response(
-            {"error": True, "errors": serializer.errors},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+                return Response({"error": False, "message": "Lead Converted to Account Successfully"}, status=status.HTTP_200_OK)
+            return Response({"error": False, "message": "Lead updated Successfully"}, status=status.HTTP_200_OK)
+        return Response({"error": True, "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(tags=["Leads"],parameters=swagger_params1.organization_params, description="Lead Delete")
+    @extend_schema(tags=["Leads"], parameters=swagger_params1.organization_params, description="Lead Delete")
+    @sales_access_required
+    @marketing_access_required
     def delete(self, request, pk, **kwargs):
         self.object = self.get_object(pk)
-        if (
-            request.profile.role == "ADMIN"
-            or request.user.is_superuser
-            or request.profile.user
-             == self.object.created_by
-        ) and self.object.org == request.profile.org:
+
+        user_profile = getattr(request, 'profile', None)
+        user = getattr(request, 'user', None)
+
+        if user_profile:
+            user_role = user_profile.role
+            user_org = user_profile.org
+        else:
+            user_role = user.role if user else None
+            user_org = user.org if user else None
+
+        logger.debug(f"user_role: {user_role}, user_org: {user_org}")
+        logger.debug(f"object created_by: {self.object.created_by}, object org: {self.object.org}")
+
+        if (user_role == "ADMIN" or (user and user.is_superuser) or (user and user == self.object.created_by)) and user_org == self.object.org:
             self.object.delete()
-            return Response(
-                {"error": False, "message": "Lead deleted Successfully"},
-                status=status.HTTP_200_OK,
-            )
-        return Response(
-            {"error": True, "errors": "you don't have permission to delete this lead"},
-            status=status.HTTP_403_FORBIDDEN,
-        )
+            return Response({"error": False, "message": "Lead deleted Successfully"}, status=status.HTTP_200_OK)
+
+        return Response({"error": True, "errors": "You don't have permission to delete this lead"}, status=status.HTTP_403_FORBIDDEN)
+
 
 
 class LeadUploadView(APIView):
