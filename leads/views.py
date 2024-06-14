@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from accounts.models import Account, Tags
-from common.access_decorators_mixins import AdminPermission
+from common.access_decorators_mixins import AdminPermission, MarketingAccessPermission, SalesAccessPermission
 from common.models import APISettings, Attachments, Comment, Profile
 
 
@@ -48,15 +48,13 @@ from leads.tasks import (
 from teams.models import Teams
 from teams.serializer import TeamsSerializer
 
-from django.core.exceptions import PermissionDenied
-from functools import wraps
 
 logger = logging.getLogger(__name__)
     
 
 class LeadListView(APIView, LimitOffsetPagination):
     model = Lead
-    permission_classes = (IsAuthenticated,AdminPermission,)
+    permission_classes = (IsAuthenticated,AdminPermission,MarketingAccessPermission,SalesAccessPermission)
 
     def get_context_data(self, **kwargs):
         params = self.request.query_params
