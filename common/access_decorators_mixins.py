@@ -1,75 +1,36 @@
-from django.contrib.auth.mixins import AccessMixin
-from django.core.exceptions import PermissionDenied
+from rest_framework import permissions
+from common.models import Profile
 
+class AdminPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.user.is_authenticated:
+            try:
+                profile = request.user.profile
+                if profile.role == 'ADMIN':
+                    return True
+                return False
+            except Profile.DoesNotExist:
+                return False
+        return False
 
-def sales_access_required(function):
-    """this function is a decorator used to authorize if a user has sales access"""
+class SalesAccessPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.user.is_authenticated:
+            try:
+                if request.user.profile.has_sales_access:
+                    return True
+                return False
+            except Profile.DoesNotExist:
+                return False
+        return False
 
-    def wrap(request, *args, **kwargs):
-        if (
-            request.user.role == "ADMIN"
-            or request.user.is_superuser
-            or request.user.has_sales_access
-        ):
-            return function(request, *args, **kwargs)
-        raise PermissionDenied
-
-    return wrap
-
-
-def marketing_access_required(function):
-    """this function is a decorator used to authorize if a user has marketing access"""
-
-    def wrap(request, *args, **kwargs):
-        if (
-            request.user.role == "ADMIN"
-            or request.user.is_superuser
-            or request.user.has_marketing_access
-        ):
-            return function(request, *args, **kwargs)
-        raise PermissionDenied
-
-    return wrap
-
-
-class SalesAccessRequiredMixin(AccessMixin):
-    """Mixin used to authorize if a user has sales access"""
-
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return self.handle_no_permission()
-        self.raise_exception = True
-        if (
-            request.user.role == "ADMIN"
-            or request.user.is_superuser
-            or request.user.has_sales_access
-        ):
-            return super().dispatch(request, *args, **kwargs)
-        return self.handle_no_permission()
-
-
-class MarketingAccessRequiredMixin(AccessMixin):
-    """Mixin used to authorize if a user has marketing access"""
-
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return self.handle_no_permission()
-        self.raise_exception = True
-        if (
-            request.user.role == "ADMIN"
-            or request.user.is_superuser
-            or request.user.has_marketing_access
-        ):
-            return super().dispatch(request, *args, **kwargs)
-        return self.handle_no_permission()
-
-
-def admin_login_required(function):
-    """this function is a decorator used to authorize if a user is admin"""
-
-    def wrap(request, *args, **kwargs):
-        if request.user.role == "ADMIN" or request.user.is_superuser:
-            return function(request, *args, **kwargs)
-        raise PermissionDenied
-
-    return wrap
+class MarketingAccessPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.user.is_authenticated:
+            try:
+                if request.user.profile.has_marketing_access:
+                    return True
+                return False
+            except Profile.DoesNotExist:
+                return False
+        return False
