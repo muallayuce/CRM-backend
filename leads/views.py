@@ -54,21 +54,17 @@ logger = logging.getLogger(__name__)
 
 class LeadListView(APIView, LimitOffsetPagination):
     model = Lead
-    permission_classes = (IsAuthenticated,AdminPermission,MarketingAccessPermission,SalesAccessPermission)
+    permission_classes = (AdminPermission | SalesAccessPermission | MarketingAccessPermission,)
 
     def get_context_data(self, **kwargs):
         params = self.request.query_params
         queryset = (
-            self.model.objects.filter(org=self.request.profile.org)
+            Lead.objects.filter(org=self.request.profile.org)
             .exclude(status="converted")
             .select_related("created_by")
             .prefetch_related("tags", "assigned_to")
             .order_by("-id")
         )
-        if not self.request.user.is_superuser:
-            queryset = queryset.filter(
-                Q(assigned_to__in=[self.request.profile]) | Q(created_by=self.request.profile.user)
-            )
 
         if params:
             if params.get("name"):
