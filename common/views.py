@@ -230,7 +230,7 @@ class UsersListView(APIView, LimitOffsetPagination):
         return Response(context)
     
 
-
+#by Id
 class UserDetailView(APIView):
     permission_classes = (IsAuthenticated,)
 
