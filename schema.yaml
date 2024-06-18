@@ -423,6 +423,7 @@ paths:
       - {}
       responses:
         '200':
+        '200':
           description: No response body
   /api/auth/login:
     post:
@@ -2905,6 +2906,56 @@ components:
       description: |-
         * `open` - Open
         * `close` - Close
+    Address:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        address_line:
+          type: string
+          title: Address
+          maxLength: 255
+        street:
+          type: string
+          maxLength: 55
+        city:
+          type: string
+          maxLength: 255
+        state:
+          type: string
+          maxLength: 255
+        postcode:
+          type: string
+          title: Post/Zip-code
+          maxLength: 64
+        country:
+          oneOf:
+          - $ref: '#/components/schemas/CountryEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+      required:
+      - created_at
+      - id
+      - updated_at
     BillingCountryEnum:
       enum:
       - GB
