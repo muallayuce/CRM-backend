@@ -121,10 +121,10 @@ class ContactsListView(APIView, LimitOffsetPagination):
             contact_obj.assigned_to.add(*profiles)
 
         recipients = list(contact_obj.assigned_to.all().values_list("id", flat=True))
-        send_email_to_assigned_user.delay(
+        """ send_email_to_assigned_user.delay(
             recipients,
             contact_obj.id,
-        )
+        ) """
 
         if request.FILES.get("contact_attachment"):
             attachment = Attachments()
