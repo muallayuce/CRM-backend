@@ -41,7 +41,7 @@ from cases.serializer import CaseSerializer
 
 # from common.custom_auth import JSONWebTokenAuthentication
 from common import serializer, swagger_params1
-from common.models import APISettings, Document, Org, Profile, User
+from common.models import APISettings, Document, Org, Profile, User, GoogleAuth
 from common.serializer import *
 # from common.serializer import (
 #     CreateUserSerializer,
@@ -446,36 +446,83 @@ class ApiHomeView(APIView):
 
 
 class AdminProfileView(APIView):
-    # authentication_classes = (CustomDualAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    model1 = GoogleAuth
+    serializer_class = GoogleAuthUpdater
 
-    model1 = Org
-    model2 = Profile
-    serializer_class = OrgProfileCreateSerializer
-    profile_serializer = CreateProfileSerializer
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.request.method == 'GET':
+            self.permission_classes = [AllowAny]
+        elif self.request.method == 'PUT':
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
 
     @extend_schema(
-        description="Organization and profile Creation api",
-        request=OrgProfileCreateSerializer
+        description="Get the 'is_google_auth' value",
+        responses={200: GoogleAuthUpdater}
+    )
+    def get(self, request, format=None):
+        """
+        Retrieve the 'is_google_auth' value from the database.
+        """
+        google_auth = GoogleAuth.objects.first()  # Assuming there's only one entry
+        if google_auth:
+            serializer = GoogleAuthUpdater(google_auth)
+            return Response(
+                {
+                    "error": False,
+                    "status": status.HTTP_200_OK,
+                    "is_google_auth": serializer.data['is_google_auth'],
+                }
+            )
+        else:
+            return Response(
+                {
+                    "error": True,
+                    "message": "No GoogleAuth entry found.",
+                    "status": status.HTTP_404_NOT_FOUND,
+                }
+            )
+
+    @extend_schema(
+        description="Update the 'is_google_auth' value",
+        request=GoogleAuthUpdater
     )
     def put(self, request):
         """
-        Handle updating the 'is_google_auth' field of an organization by name
+        Update the 'is_google_auth' value.
         """
-        org_name = request.data.get('name')
-        if not org_name:
-            return Response({"error": True, "message": "Name is required.", "status": status.HTTP_400_BAD_REQUEST})
-
-        if not Org.objects.filter(name=org_name).exists():
-            return Response({"error": True, "message": "Organization not found.", "status": status.HTTP_404_NOT_FOUND})
-
-        org = Org.objects.get(name=org_name)
-        serializer = OrgProfileUpdateSerializer(
-            org, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"error": False, "message": "Organization updated successfully.", "org": serializer.data, "status": status.HTTP_200_OK})
-        return Response({"error": True, "errors": serializer.errors, "status": status.HTTP_400_BAD_REQUEST})
+        google_auth = GoogleAuth.objects.first()  # Assuming there's only one entry
+        if google_auth:
+            serializer = self.serializer_class(google_auth, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(
+                    {
+                        "error": False,
+                        "message": "GoogleAuth updated successfully.",
+                        "is_google_auth": serializer.data['is_google_auth'],
+                        "status": status.HTTP_200_OK,
+                    }
+                )
+            else:
+                return Response(
+                    {
+                        "error": True,
+                        "errors": serializer.errors,
+                        "status": status.HTTP_400_BAD_REQUEST,
+                    }
+                )
+        else:
+            return Response(
+                {
+                    "error": True,
+                    "message": "No GoogleAuth entry found.",
+                    "status": status.HTTP_404_NOT_FOUND,
+                }
+            )
 
 class OrgProfileCreateView(APIView):
     # authentication_classes = (CustomDualAuthentication,)

@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: BottleCRM API
+  title: LeadOpp CRM
   version: 1.0.0
   description: Open source CRM application
 paths:
@@ -289,33 +289,6 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/admin/:
-    put:
-      operationId: admin_update
-      description: Organization and profile Creation api
-      tags:
-      - admin
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OrgProfileCreateRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/OrgProfileCreateRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/OrgProfileCreateRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrgProfileCreate'
-          description: ''
   /api/api-settings/:
     get:
       operationId: api_settings_retrieve
@@ -2163,8 +2136,65 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/OrgProfileCreate"
-          description: ""
+                $ref: '#/components/schemas/OrgProfileCreate'
+          description: ''
+  /api/admin/:
+    get:
+      operationId: auth_retrieve
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUpdate'
+          description: ''
+    put:
+      operationId: auth_update
+      description: Update authentication method
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                is_google_auth:
+                  type: boolean
+                  default: false
+              required:
+              - is_google_auth
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                is_google_auth:
+                  type: boolean
+                  default: false
+              required:
+              - is_google_auth
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                is_google_auth:
+                  type: boolean
+                  default: false
+              required:
+              - is_google_auth
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUpdate'
+          description: ''
   /api/profile/:
     get:
       operationId: profile_retrieve
@@ -5081,6 +5111,14 @@ components:
       required:
       - comment
       - opportunity_attachment
+    AuthUpdate:
+      type: object
+      description: It is for updating auth
+      properties:
+        is_google_auth:
+          type: boolean
+      required:
+      - is_google_auth
     OrgProfileCreate:
       type: object
       description: It is for creating organization

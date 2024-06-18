@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: BottleCRM API
+  title: LeadOpp CRM
   version: 1.0.0
   description: Open source CRM application
 paths:
@@ -289,33 +289,6 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/admin/:
-    put:
-      operationId: admin_update
-      description: Organization and profile Creation api
-      tags:
-      - admin
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OrgProfileCreateRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/OrgProfileCreateRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/OrgProfileCreateRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrgProfileCreate'
-          description: ''
   /api/api-settings/:
     get:
       operationId: api_settings_retrieve
@@ -427,6 +400,105 @@ paths:
       responses:
         '204':
           description: No response body
+  paths:
+  /api/auth/login:
+    post:
+      operationId: auth_login_create
+      description: Login with email and password
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        "200":
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user_id:
+                    type: integer
+                required:
+                  - token
+                  - user_id
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+  /api/auth/register:
+    post:
+      operationId: auth_register_create
+      description: Register a new user with email and password
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email address of the user
+                password:
+                  type: string
+                  description: Password for the user account
+              required:
+                - email
+                - password
+      responses:
+        "201":
+          description: Successful registration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                  user_id:
+                    type: integer
+                required:
+                  - email
+                  - user_id
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+        "409":
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
   /api/auth/google/:
     post:
       operationId: auth_google_create
@@ -444,30 +516,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/SocialLoginRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
-  /api/auth/login:
-    post:
-      operationId: auth_login_create
-      description: User login
-      tags:
-      - auth
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
         required: true
       security:
       - jwtAuth: []
@@ -502,30 +550,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenRefresh'
           description: ''
-  /api/auth/register:
-    post:
-      operationId: auth_register_create
-      description: User signup
-      tags:
-      - auth
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RegisterRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/RegisterRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/RegisterRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
   /api/cases/:
     get:
       operationId: cases_retrieve
@@ -2111,6 +2135,59 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OrgProfileCreate'
+          description: ''
+  /api/admin/:
+    get:
+      operationId: auth_retrieve
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUpdate'
+          description: ''
+    put:
+      operationId: auth_update
+      description: Update authentication method
+      tags:
+      - org
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrgProfileCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                is_google_auth:
+                  type: boolean
+                  default: false
+              required:
+              - is_google_auth
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                is_google_auth:
+                  type: boolean
+                  default: false
+              required:
+              - is_google_auth
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUpdate'
           description: ''
   /api/profile/:
     get:
@@ -4978,6 +5055,15 @@ components:
       required:
       - comment
       - opportunity_attachment
+        - null
+    AuthUpdate:
+      type: object
+      description: It is for updating auth
+      properties:
+        is_google_auth:
+          type: boolean
+      required:
+      - is_google_auth
     OrgProfileCreate:
       type: object
       description: It is for creating organization
