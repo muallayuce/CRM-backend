@@ -24,8 +24,8 @@ DBPORT=""
 SENTRY_DSN=""
 
 # Celery
-CELERY_BROKER_URL=""
-CELERY_RESULT_BACKEND=""
+CELERY_BROKER_URL="redis://localhost:6379"
+CELERY_RESULT_BACKEND="redis://localhost:6379"
 
 # Swagger
 SWAGGER_ROOT_URL=""

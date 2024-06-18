@@ -50,8 +50,7 @@ urlpatterns = [
         name="redoc",
     ),
     path("", include(wagtail_urls)),
-    path('api/auth/', include('auth_app.urls')),
-    path('api/invitation/', include('invitation.urls')),
+    path('api/auth/', include('auth_app.urls'))
 ]
 
 

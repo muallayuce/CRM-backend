@@ -163,7 +163,16 @@ USE_I18N = True
 
 USE_TZ = True
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+#EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_HOST = 'smtp.mailgun.org'
+#MAILGUN_API_KEY = '60e116f26932371b3d730298c63a4612-6fafb9bf-5ce97bdd'
+EMAIL_USE_TLS = False
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'brad@sandbox95f9439ef93142e7b37baa98651655a7.mailgun.org'
+EMAIL_HOST_PASSWORD = 'Kickers$2024_'
 
 AUTH_USER_MODEL = "common.User"
 
@@ -186,6 +195,11 @@ ADMIN_EMAIL = os.environ["ADMIN_EMAIL"]
 # celery Tasks
 CELERY_BROKER_URL = os.environ["CELERY_BROKER_URL"]
 CELERY_RESULT_BACKEND = os.environ["CELERY_RESULT_BACKEND"]
+#CELERY_BROKER_URL = 'redis://localhost:6379'  # Adjust port if needed
+#CELERY_RESULT_BACKEND = 'redis://localhost:6379'  # Adjust port if needed
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
 
 
 LOGGING = {
