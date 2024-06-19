@@ -22,6 +22,7 @@ class Contact(BaseModel):
     secondary_email = models.EmailField(default="", blank=True)
     mobile_number = PhoneNumberField(null=True, unique=True)
     secondary_number = PhoneNumberField(null=True,blank=True)
+    website = models.URLField(_("Website"), max_length=255, null=True, blank=True) 
     department = models.CharField(_("Department"), max_length=255, null=True)
     language = models.CharField(_("Language"), max_length=255, null=True)
     do_not_call = models.BooleanField(default=False)

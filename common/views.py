@@ -86,7 +86,6 @@ class GetTeamsAndUsersView(APIView):
 
 
 class UsersListView(APIView, LimitOffsetPagination):
-
     permission_classes = (IsAuthenticated,)
 
     @extend_schema(parameters=swagger_params1.organization_params, request=UserCreateSwaggerSerializer)
@@ -106,49 +105,48 @@ class UsersListView(APIView, LimitOffsetPagination):
         else:
             params = request.data
             if params:
-                user_serializer = CreateUserSerializer(
-                    data=params, org=request.profile.org)
-                address_serializer = BillingAddressSerializer(data=params)
+                user_serializer = CreateUserSerializer(data=params, org=request.profile.org)
                 profile_serializer = CreateProfileSerializer(data=params)
+                
+                # Check if address fields are provided
+                address_provided = any(params.get(field) for field in ['address_line', 'street', 'city', 'state', 'postcode', 'country'])
+                address_serializer = BillingAddressSerializer(data=params) if address_provided else None
+                
                 data = {}
                 if not user_serializer.is_valid():
                     data["user_errors"] = dict(user_serializer.errors)
                 if not profile_serializer.is_valid():
                     data["profile_errors"] = profile_serializer.errors
-                if not address_serializer.is_valid():
-                    data["address_errors"] = (address_serializer.errors,)
+                if address_serializer and not address_serializer.is_valid():
+                    data["address_errors"] = address_serializer.errors
                 if data:
                     return Response(
                         {"error": True, "errors": data},
                         status=status.HTTP_400_BAD_REQUEST,
                     )
-                if address_serializer.is_valid():
-                    address_obj = address_serializer.save()
-                    user = user_serializer.save(
-                        is_active=True,
-                    )
-                    user.email = user.email
-                    user.save()
-                    # if params.get("password"):
-                    #     user.set_password(params.get("password"))
-                    #     user.save()
-                    profile = Profile.objects.create(
-                        user=user,
-                        date_of_joining=timezone.now(),
-                        role=params.get("role"),
-                        address=address_obj,
-                        org=request.profile.org,
-                        phone=params.get("phone"), #this line is needed to create user with phone number being provided.      
-                    )
 
-                    # send_email_to_new_user.delay(
-                    #     profile.id,
-                    #     request.profile.org.id,
-                    # )
-                    return Response(
-                        {"error": False, "message": "User Created Successfully"},
-                        status=status.HTTP_201_CREATED,
-                    )
+                address_obj = address_serializer.save() if address_serializer else None
+                user = user_serializer.save(is_active=True)
+                user.email = user.email
+                user.save()
+                
+                profile = Profile.objects.create(
+                    user=user,
+                    date_of_joining=timezone.now(),
+                    role=params.get("role"),
+                    address=address_obj,
+                    org=request.profile.org,
+                    phone=params.get("phone"),
+                    alternate_phone=params.get("alternate_phone"),
+                )
+
+                # Uncomment to send an email to the new user
+                # send_email_to_new_user.delay(profile.id, request.profile.org.id)
+
+                return Response(
+                    {"error": False, "message": "User Created Successfully"},
+                    status=status.HTTP_201_CREATED,
+                )
 
     @extend_schema(parameters=swagger_params1.user_list_params)
     def get(self, request, format=None):
@@ -232,7 +230,7 @@ class UsersListView(APIView, LimitOffsetPagination):
         return Response(context)
     
 
-
+#by Id
 class UserDetailView(APIView):
     permission_classes = (IsAuthenticated,)
 

@@ -141,6 +141,13 @@ class BillingAddressSerializer(serializers.ModelSerializer):
             self.fields["state"].required = True
             self.fields["postcode"].required = True
             self.fields["country"].required = True
+        else:
+            self.fields["address_line"].required = False
+            self.fields["street"].required = False
+            self.fields["city"].required = False
+            self.fields["state"].required = False
+            self.fields["postcode"].required = False
+            self.fields["country"].required = False
 
 class CreateUserSerializer(serializers.ModelSerializer):
 
