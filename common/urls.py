@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from rest_framework_simplejwt import views as jwt_views
 
 from common import views
@@ -27,4 +27,6 @@ urlpatterns = [
     path("api-settings/<str:pk>/", views.DomainDetailView.as_view()),
     path("user/<str:pk>/status/", views.UserStatusView.as_view()),
     path('check-user-count/', views.CheckUserCountView.as_view(), name='check-user-count'),
+    
+    path('invitation/', include('invitation.urls')),
 ]
