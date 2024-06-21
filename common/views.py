@@ -590,10 +590,10 @@ class ProfileView(APIView):
     permission_classes = (IsAuthenticated,)
 
     @extend_schema(
-        parameters=organization_params,
+        parameters=[],
         responses={200: ProfileSerializer}
     )
-    def get(self, request, format=None):
+    def get(self, request, pk=None, format=None):
         org = request.headers.get('org')
         print(f"Organization Header: {org}")
 
@@ -607,7 +607,42 @@ class ProfileView(APIView):
             print(f"Error: {e}")
             return Response({"detail": "An error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class ProfileUpdateView(APIView):
+    permission_classes = (IsAuthenticated,)
 
+    def get_object(self, pk):
+        return Profile.objects.filter(id=pk).first()
+
+    @extend_schema(
+        tags=["profile"],
+        request=ProfileSerializer,
+        responses={200: ProfileSerializer}
+    )
+    def put(self, request, pk=None, format=None):
+        profile = self.get_object(pk)
+        if not profile:
+            return Response(
+                {"error": True, "errors": "Profile does not exist"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if request.user.profile.role != "ADMIN" and not request.user.is_superuser:
+            return Response(
+                {"error": True, "errors": "You do not have permission to perform this action"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = ProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            profile = serializer.save()
+            return Response(
+                ProfileSerializer(profile).data,
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            {"error": True, "errors": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 class DocumentListView(APIView, LimitOffsetPagination):
     # authentication_classes = (CustomDualAuthentication,)
     permission_classes = (IsAuthenticated,)
