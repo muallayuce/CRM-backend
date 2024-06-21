@@ -156,7 +156,9 @@ class CreateUserSerializer(serializers.ModelSerializer):
         fields = (
             "email",
             "profile_pic",
-            
+            "first_name",
+            "last_name",
+            "job_title",
         )
 
     def __init__(self, *args, **kwargs):
@@ -199,17 +201,19 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "email", "profile_pic"] 
-
-
+        fields = [ "is_active","profile_pic","email", "first_name","last_name","job_title" ] 
+  
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        fields = '__all__'
+        # fields = '__all__'
+        exclude = ['created_by', 'updated_by']
+
 
 
 class ProfileSerializer(serializers.ModelSerializer):
     address = AddressSerializer()
+    user_details = UserSerializer(source='user', required=False)
 
     class Meta:
         model = Profile
@@ -221,9 +225,57 @@ class ProfileSerializer(serializers.ModelSerializer):
             "has_marketing_access",
             "has_sales_access",
             "phone",
+            "alternate_phone",
             "date_of_joining",
             "is_active",
-        ) 
+            "is_organization_admin",
+        )
+
+    def create(self, validated_data):
+        address_data = validated_data.pop('address', None)
+        user_details_data = validated_data.pop('user', None)
+        profile = Profile.objects.create(**validated_data)
+        
+        if address_data:
+            address, created = Address.objects.get_or_create(**address_data)
+            profile.address = address
+        
+        if user_details_data:
+            user = profile.user
+            user.email = user_details_data.get('email', user.email)
+            user.first_name = user_details_data.get('first_name', user.first_name)
+            user.last_name = user_details_data.get('last_name', user.last_name)
+            user.profile_pic = user_details_data.get('profile_pic', user.profile_pic)
+            user.job_title = user_details_data.get('job_title', user.job_title)
+            user.is_active = user_details_data.get('is_active', user.is_active)
+            user.save()
+        
+        profile.save()
+        return profile
+
+    def update(self, instance, validated_data):
+        address_data = validated_data.pop('address', None)
+        user_details_data = validated_data.pop('user', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        if address_data:
+            address, created = Address.objects.get_or_create(**address_data)
+            instance.address = address
+
+        if user_details_data:
+            user = instance.user
+            user.email = user_details_data.get('email', user.email)
+            user.first_name = user_details_data.get('first_name', user.first_name)
+            user.last_name = user_details_data.get('last_name', user.last_name)
+            user.profile_pic = user_details_data.get('profile_pic', user.profile_pic)
+            user.job_title = user_details_data.get('job_title', user.job_title)
+            user.is_active = user_details_data.get('is_active', user.is_active)
+            user.save()
+
+        instance.save()
+        return instance
 class AttachmentsSerializer(serializers.ModelSerializer):
     file_path = serializers.SerializerMethodField()
 

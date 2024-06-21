@@ -41,6 +41,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     key_expires = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(_('staff status'), default=False)
+    first_name = models.CharField(max_length=255, null=True, blank=True)
+    last_name = models.CharField(max_length=255, null=True, blank=True)
+    job_title = models.CharField(max_length=255, null=True, blank=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
@@ -241,7 +244,10 @@ class Profile(BaseModel):
             'email' : self.user.email,
             'id' :  self.user.id,
             'is_active' : self.user.is_active,
-            'profile_pic' : self.user.profile_pic
+            'profile_pic' : self.user.profile_pic,
+            'first_name' : self.user.first_name,
+            'last_name'  : self.user.last_name,
+            'job_title' : self.user.job_title            
         }
 
 
