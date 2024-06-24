@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('common', '0013_remove_user_has_marketing_access_and_more'),
+        ('common', '0014_alter_googleauth_options_and_more'),
     ]
 
     operations = [
