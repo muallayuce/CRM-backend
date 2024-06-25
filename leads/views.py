@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from accounts.models import Account, Tags
-from common.access_decorators_mixins import AdminPermission, MarketingAccessPermission, SalesAccessPermission
+from common.access_decorators_mixins import AdminPermission, MarketingAccessPermission, SalesManagerAccessPermission
 from common.models import APISettings, Attachments, Comment, Profile
 
 
@@ -54,7 +54,7 @@ logger = logging.getLogger(__name__)
 
 class LeadListView(APIView, LimitOffsetPagination):
     model = Lead
-    permission_classes = (AdminPermission | SalesAccessPermission | MarketingAccessPermission,)
+    permission_classes = (AdminPermission | SalesManagerAccessPermission | MarketingAccessPermission,)
 
     def get_context_data(self, **kwargs):
         params = self.request.query_params

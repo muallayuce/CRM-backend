@@ -220,6 +220,7 @@ class Profile(BaseModel):
     role = models.CharField(max_length=50, choices=ROLES, default="USER")
     has_sales_access = models.BooleanField(default=False)
     has_marketing_access = models.BooleanField(default=False)
+    has_sales_representative_access = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_organization_admin = models.BooleanField(default=False)
     date_of_joining = models.DateField(null=True, blank=True)
