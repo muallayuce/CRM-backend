@@ -187,6 +187,7 @@ class CreateProfileSerializer(serializers.ModelSerializer):
             "alternate_phone",
             "has_sales_access",
             "has_marketing_access",
+            "has_sales_representative_access",
             "is_organization_admin",
         )
 
@@ -224,6 +225,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "address",
             "has_marketing_access",
             "has_sales_access",
+            "has_sales_representative_access",
             "phone",
             "alternate_phone",
             "date_of_joining",
