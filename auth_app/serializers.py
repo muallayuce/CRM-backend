@@ -1,9 +1,10 @@
 from django.contrib.auth import authenticate
-#from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, password_validation
 
-User=get_user_model()
+User = get_user_model()
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
@@ -21,9 +22,10 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("A user with this email already exists.")
+            raise serializers.ValidationError(
+                "A user with this email already exists.")
         return value
-    
+
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -44,11 +46,33 @@ class LoginSerializer(serializers.Serializer):
                     print(f'Password check passed')  # Debugging
                 else:
                     print(f'Password check failed')  # Debugging
-                    raise serializers.ValidationError("Unable to login with given credentials")
+                    raise serializers.ValidationError(
+                        "Unable to login with given credentials")
             except User.DoesNotExist:
                 print(f'User not found')  # Debugging
-                raise serializers.ValidationError("Unable to login with given credentials")
+                raise serializers.ValidationError(
+                    "Unable to login with given credentials")
         else:
             print(f'Missing email or password')  # Debugging
-            raise serializers.ValidationError("Must include 'email' and 'password'")
+            raise serializers.ValidationError(
+                "Must include 'email' and 'password'")
+        return data
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True, write_only=True)
+    new_password = serializers.CharField(required=True, write_only=True)
+
+    def validate_new_password(self, value):
+        password_validation.validate_password(value)
+        return value
+
+    def validate(self, data):
+        user = self.context['request'].user
+
+        # Debugging: Check what user is retrieved
+        print(f"Authenticated user: {user}")
+
+        if not user.check_password(data['old_password']):
+            raise serializers.ValidationError(
+                {"old_password": "Old password is not correct"})
         return data

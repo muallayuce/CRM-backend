@@ -18,6 +18,7 @@ urlpatterns = [
     path("org/", views.OrgProfileCreateView.as_view()),
     path("admin/", views.AdminProfileView.as_view()),
     path("profile/", views.ProfileView.as_view()),
+    path("profile/<str:pk>/", views.ProfileUpdateView.as_view(), name='profile-update'),
     path("users/get-teams-and-users/", views.GetTeamsAndUsersView.as_view()),
     path("users/", views.UsersListView.as_view()),
     path("user/<str:pk>/", views.UserDetailView.as_view()),
