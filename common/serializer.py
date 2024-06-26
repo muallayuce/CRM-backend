@@ -135,13 +135,6 @@ class BillingAddressSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
 
         if account_view:
-            self.fields["address_line"].required = True
-            self.fields["street"].required = True
-            self.fields["city"].required = True
-            self.fields["state"].required = True
-            self.fields["postcode"].required = True
-            self.fields["country"].required = True
-        else:
             self.fields["address_line"].required = False
             self.fields["street"].required = False
             self.fields["city"].required = False

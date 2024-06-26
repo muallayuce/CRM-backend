@@ -21,7 +21,7 @@ from common.utils import COUNTRIES
 from contacts import swagger_params1
 from contacts.models import Contact, Profile
 from contacts.serializer import *
-from contacts.tasks import send_email_to_assigned_user
+#from contacts.tasks import send_email_to_assigned_user
 from tasks.serializer import TaskSerializer
 from teams.models import Teams
 
@@ -233,10 +233,10 @@ class ContactDetailView(APIView):
             )
             recipients = list(set(assigned_to_list) -
                               set(previous_assigned_to_users))
-            send_email_to_assigned_user.delay(
-                recipients,
-                contact_obj.id,
-            )
+            # send_email_to_assigned_user.delay(
+            #     recipients,
+            #     contact_obj.id,
+            # )
             if request.FILES.get("contact_attachment"):
                 attachment = Attachments()
                 attachment.created_by = request.profile.user
