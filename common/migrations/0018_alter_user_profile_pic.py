@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('common', '0016_alter_user_first_name_alter_user_job_title_and_more'),
+        ('common', '0017_profile_has_sales_representative_access'),
     ]
 
     operations = [
