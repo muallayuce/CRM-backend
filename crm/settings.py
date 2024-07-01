@@ -166,13 +166,14 @@ USE_TZ = True
 #EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-EMAIL_HOST = 'smtp.mailgun.org'
+EMAIL_HOST = 'smtp.gmail.com'
 #MAILGUN_API_KEY = '60e116f26932371b3d730298c63a4612-6fafb9bf-5ce97bdd'
-EMAIL_USE_TLS = False
-EMAIL_PORT = 465
-EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'brad@sandbox95f9439ef93142e7b37baa98651655a7.mailgun.org'
-EMAIL_HOST_PASSWORD = 'Kickers$2024_'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+#EMAIL_USE_SSL = True
+EMAIL_HOST_USER = os.environ["EMAIL_HOST_USER"]
+DEFAULT_FROM_EMAIL = os.environ["DEFAULT_FROM_EMAIL"]
+EMAIL_HOST_PASSWORD = os.environ["EMAIL_HOST_PASSWORD"]
 
 AUTH_USER_MODEL = "common.User"
 

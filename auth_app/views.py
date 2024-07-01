@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate, get_user_model, update_session_aut
 from .serializers import LoginSerializer, RegisterSerializer, ChangePasswordSerializer
 from drf_spectacular.utils import extend_schema
 import logging
+from invitation.models import Invitation
 
 
 logger = logging.getLogger(__name__)
