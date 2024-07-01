@@ -17,15 +17,33 @@ services:
       - CELERY_RESULT_BACKEND=redis://localhost:6379/0
       - DOMAIN_NAME="DOMAIN.NAME"
       - SWAGGER_ROOT_URL="SWAGGER.ROOT.URL"
+    command: /app/celery -A crm worker -l info
     depends_on:
       - crm-db
-      # - redis
+      - redis
     ports:
       - 8000:8000
     volumes:
       - C:/Django-CRM:/app
     networks:
       - nw
+  
+  redis:
+      image: redis:latest
+      ports:
+      - 6379:6379
+      container_name: redis
+
+  celery:
+    image: celery:latest
+    volumes:
+      - C:/Django-CRM:/app
+    container_name: cl01
+    environment:
+      CELERY_BROKER_URL: "redis://redis"
+      CELERY_BACKEND_URL: "redis://redis"
+    links:
+      - redis
 
   crm-db:
     image: postgres:latest
