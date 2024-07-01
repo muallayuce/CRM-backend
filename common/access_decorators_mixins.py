@@ -13,7 +13,7 @@ class AdminPermission(permissions.BasePermission):
                 return False
         return False
 
-class SalesAccessPermission(permissions.BasePermission):
+class SalesManagerAccessPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.user.is_authenticated:
             try:
@@ -29,6 +29,17 @@ class MarketingAccessPermission(permissions.BasePermission):
         if request.user.is_authenticated:
             try:
                 if request.user.profile.has_marketing_access:
+                    return True
+                return False
+            except Profile.DoesNotExist:
+                return False
+        return False
+    
+class SalesRepresentativeAccessPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.user.is_authenticated:
+            try:
+                if request.user.profile.has_sales_representative_access:
                     return True
                 return False
             except Profile.DoesNotExist:

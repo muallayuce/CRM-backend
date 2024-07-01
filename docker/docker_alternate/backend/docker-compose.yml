@@ -1,0 +1,70 @@
+services:
+    nginx:
+        restart: always
+        image: nginx:latest
+        ports:
+            - 80:80
+        volumes:
+            - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+            - static_volume:/app/backend/django_static
+    server:
+        restart: unless-stopped
+        build:
+            context: .
+            dockerfile: ./docker/backend/Dockerfile
+        entrypoint: /app/docker/backend/server-entrypoint.sh
+        volumes:
+            - static_volume:/app/backend/django_static
+        expose:
+            - 8000     
+        environment:
+            DEBUG: "True"
+            CELERY_BROKER_URL: "redis://redis:6379/0"
+            CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+            DJANGO_DB: postgresql
+            POSTGRES_HOST: db
+            POSTGRES_NAME: crm
+            POSTGRES_USER: crm
+            POSTGRES_PASSWORD: crm
+            POSTGRES_PORT: 5432
+    worker:
+        restart: unless-stopped
+        build:
+            context: .
+            dockerfile: ./docker/backend/Dockerfile
+        entrypoint: /app/docker/backend/worker-entrypoint.sh
+        volumes:
+            - static_volume:/app/backend/django_static
+        environment:
+            DEBUG: "True"
+            CELERY_BROKER_URL: "redis://redis:6379/0"
+            CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+            DJANGO_DB: postgresql
+            POSTGRES_HOST: db
+            POSTGRES_NAME: postgres
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_PORT: 5432
+        depends_on:
+            - server
+            - redis
+    redis:
+        restart: unless-stopped
+        image: redis:latest 
+        expose:
+            - 6379
+    db:
+        image: postgres:latest
+        restart: unless-stopped
+        volumes:
+            - postgres_data:/var/lib/postgresql/data/
+        environment:
+            POSTGRES_DB: crm
+            POSTGRES_USER: crm
+            POSTGRES_PASSWORD: crm
+        expose:
+            - 5432
+    
+volumes:
+    static_volume: {C:/Django-CRM}
+    postgres_data: {C:/postgresql}

@@ -10,6 +10,11 @@ from teams.models import Teams
 
 
 class Contact(BaseModel):
+    CATEGORY_CHOICES = [
+        ('Lead', 'Lead'),
+        ('Prospect', 'Prospect'),
+        ('Customer', 'Customer'),
+    ]
     salutation = models.CharField(
         _("Salutation"), max_length=255, default="", blank=True
     )
@@ -45,6 +50,12 @@ class Contact(BaseModel):
     teams = models.ManyToManyField(Teams, related_name="contact_teams")
     org = models.ForeignKey(Org, on_delete=models.SET_NULL, null=True, blank=True)
     country = models.CharField(max_length=3, choices=COUNTRIES, blank=True, null=True)
+    category = models.CharField(
+        max_length=20,
+        choices=CATEGORY_CHOICES,
+        default='Lead',
+        verbose_name=_("Category")
+    )
 
     class Meta:
         verbose_name = "Contact"
