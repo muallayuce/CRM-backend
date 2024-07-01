@@ -2,8 +2,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate, get_user_model
-from .serializers import LoginSerializer, RegisterSerializer
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import authenticate, get_user_model, update_session_auth_hash
+from .serializers import LoginSerializer, RegisterSerializer, ChangePasswordSerializer
 from drf_spectacular.utils import extend_schema
 import logging
 
@@ -85,3 +86,25 @@ class LoginView(APIView):
         }
         logger.debug('Login successful for user: %s', user.email)
         return Response(response, status=status.HTTP_200_OK)
+
+class ChangePasswordView(APIView):
+    """
+    Change password view
+    """
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(
+        description="Change password",
+        request=ChangePasswordSerializer
+    )
+    def post(self, request):
+        serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            user = request.user
+            print(f"Authenticated user: {user}")  # Log para verificar usuario autenticado
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            update_session_auth_hash(request, user)  # Importante para mantener al usuario autenticado
+            return Response({"detail": "Password has been changed successfully"}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

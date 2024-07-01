@@ -36,11 +36,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=uuid.uuid4, unique=True, editable=False, db_index=True, primary_key=True
     )
     email = models.EmailField(_("email address"), blank=True, unique=True)
-    profile_pic = models.CharField(max_length=1000, null=True, blank=True)
+    profile_pic = models.TextField(null=True, blank=True)
     activation_key = models.CharField(max_length=150, null=True, blank=True)
     key_expires = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(_('staff status'), default=False)
+    first_name = models.CharField(max_length=255, null=True, blank=True)
+    last_name = models.CharField(max_length=255, null=True, blank=True)
+    job_title = models.CharField(max_length=255, null=True, blank=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
@@ -217,6 +220,7 @@ class Profile(BaseModel):
     role = models.CharField(max_length=50, choices=ROLES, default="USER")
     has_sales_access = models.BooleanField(default=False)
     has_marketing_access = models.BooleanField(default=False)
+    has_sales_representative_access = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_organization_admin = models.BooleanField(default=False)
     date_of_joining = models.DateField(null=True, blank=True)
@@ -241,7 +245,10 @@ class Profile(BaseModel):
             'email' : self.user.email,
             'id' :  self.user.id,
             'is_active' : self.user.is_active,
-            'profile_pic' : self.user.profile_pic
+            'profile_pic' : self.user.profile_pic,
+            'first_name' : self.user.first_name,
+            'last_name'  : self.user.last_name,
+            'job_title' : self.user.job_title            
         }
 
 

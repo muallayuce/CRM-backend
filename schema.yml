@@ -2204,6 +2204,69 @@ paths:
       responses:
         '200':
           description: No response body
+    put:
+      operationId: name_update
+      description: Update name and title
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string 
+                job_title:
+                  type: string                                   
+              required:
+              - first_name
+              - last_name
+              - job_title            
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string 
+                job_title:
+                  type: string
+              required:
+              - first_name
+              - last_name
+              - job_title  
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string 
+                job_title:
+                  type: string                                   
+              required:
+              - first_name
+              - last_name
+              - job_title  
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileUpdate'
+          description: ''
   /api/tasks/:
     get:
       operationId: tasks_retrieve
@@ -4969,6 +5032,20 @@ components:
           minLength: 1
       required:
       - comment
+    UserProfileUpdate:
+      type: object
+      description: It is for updating userprofile
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string 
+        job_title:
+          type: string
+        required:
+          - first_name
+          - last_name
+          - job_title 
     OpportunityCreateSwaggerRequest:
       type: object
       properties:
