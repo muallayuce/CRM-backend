@@ -10,12 +10,12 @@ from invitation.serialazer import InvitationSerializer, InvitationCreateSerializ
 #from common.serializer import CreateProfileSerializer
 from invitation.models import Invitation
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth import get_user_model
 from rest_framework import status
 import secrets
 from django.core.mail import EmailMessage, EmailMultiAlternatives, send_mail
 import smtplib
-from .tasks import send_email_async
+#from .tasks import send_email_async
 
 User = get_user_model()
 
@@ -103,20 +103,20 @@ def create_invitation(user_id, token, request):
     
 def send_link(email, token, temp_password, request):
 
-    user = User.objects.get(pk=request.data['inviter'])
+    #user = User.objects.get(pk=request.data['inviter'])
 
     if not all([email, token, temp_password]):
         raise ValueError('Missing required arguments: email, token or temp_password')
     
     #if settings.EMAIL_BACKEND == 'django.core.mail.backends.smtp.EmailBackend':
     subject = 'Invitation to join our platform'
-    from_email='noreply@leadopp.com'
+    from_email=settings.EMAIL_HOST_USER
     body = f"""
     Hi {email},
 
     You have been invited to join our platform. Please click the link below to complete your registration and set a new password.
 
-    Link: http://fakeUrl.com/registration/{token}
+    Link: http://localhost:3000/app/set-password/{token}
 
     Your temporary password is: {temp_password}
     
@@ -129,16 +129,16 @@ def send_link(email, token, temp_password, request):
     The {settings.WAGTAIL_SITE_NAME} Team
     """
 
-    send_email_async.delay(email, subject, body, from_email)
+    send_mail(subject, body, from_email, [email], fail_silently=False)
 
-    message = EmailMultiAlternatives(
-        subject=subject,
-        body=body,
-        from_email= from_email,
-        to=[email]
-    )
-    message.attach_alternative(body, 'text/html')  # Add HTML version if needed
-    message.send()
+    #message = EmailMessage(
+    #    subject=subject,
+    #    body=body,
+    #    from_email= from_email,
+    #    to=[email]
+    #)
+    #message.attach_alternative(body, 'text/html')  # Add HTML version if needed
+    #message.send()
     return Response({'message': 'Succesfully sent'})
     #else:
        # return Response({'message': 'Impossible to send it'})

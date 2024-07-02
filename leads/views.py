@@ -54,7 +54,7 @@ logger = logging.getLogger(__name__)
 
 class LeadListView(APIView, LimitOffsetPagination):
     model = Lead
-    permission_classes = (AdminPermission | SalesManagerAccessPermission | MarketingAccessPermission,)
+    permission_classes = (IsAuthenticated | AdminPermission | SalesManagerAccessPermission | MarketingAccessPermission,)
 
     def get_context_data(self, **kwargs):
         params = self.request.query_params
