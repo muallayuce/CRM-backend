@@ -102,10 +102,10 @@ class ChangePasswordView(APIView):
         serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             user = request.user
-            print(f"Authenticated user: {user}")  # Log para verificar usuario autenticado
+            print(f"Authenticated user: {user}")  # Log to verify authenticated user
             user.set_password(serializer.validated_data['new_password'])
             user.save()
-            update_session_auth_hash(request, user)  # Importante para mantener al usuario autenticado
+            update_session_auth_hash(request, user)  # Important to keep the user authenticated
             return Response({"detail": "Password has been changed successfully"}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
