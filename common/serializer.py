@@ -24,7 +24,7 @@ from common.utils import COUNTRIES
 class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Org
-        fields = ("id", "name","api_key")
+        fields = ("id", "name", "api_key")
 
 
 class SocialLoginSerializer(serializers.Serializer):
@@ -119,11 +119,12 @@ class GoogleAuthUpdater(serializers.ModelSerializer):
 
 
 class BillingAddressSerializer(serializers.ModelSerializer):
-    #existing code:
+    # existing code:
     # country = serializers.SerializerMethodField()
 
-    #new:
+    # new:
     country = serializers.ChoiceField(choices=COUNTRIES)
+
     class Meta:
         model = Address
         fields = ("address_line", "street", "city",
@@ -135,12 +136,20 @@ class BillingAddressSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
 
         if account_view:
+            self.fields["address_line"].required = True
+            self.fields["street"].required = True
+            self.fields["city"].required = True
+            self.fields["state"].required = True
+            self.fields["postcode"].required = True
+            self.fields["country"].required = True
+        else:
             self.fields["address_line"].required = False
             self.fields["street"].required = False
             self.fields["city"].required = False
             self.fields["state"].required = False
             self.fields["postcode"].required = False
             self.fields["country"].required = False
+
 
 class CreateUserSerializer(serializers.ModelSerializer):
 
@@ -195,14 +204,15 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = [ "is_active","profile_pic","email", "first_name","last_name","job_title" ] 
-  
+        fields = ["is_active", "profile_pic", "email",
+                  "first_name", "last_name", "job_title"]
+
+
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
         # fields = '__all__'
         exclude = ['created_by', 'updated_by']
-
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -230,21 +240,23 @@ class ProfileSerializer(serializers.ModelSerializer):
         address_data = validated_data.pop('address', None)
         user_details_data = validated_data.pop('user', None)
         profile = Profile.objects.create(**validated_data)
-        
+
         if address_data:
             address, created = Address.objects.get_or_create(**address_data)
             profile.address = address
-        
+
         if user_details_data:
             user = profile.user
             user.email = user_details_data.get('email', user.email)
-            user.first_name = user_details_data.get('first_name', user.first_name)
+            user.first_name = user_details_data.get(
+                'first_name', user.first_name)
             user.last_name = user_details_data.get('last_name', user.last_name)
-            user.profile_pic = user_details_data.get('profile_pic', user.profile_pic)
+            user.profile_pic = user_details_data.get(
+                'profile_pic', user.profile_pic)
             user.job_title = user_details_data.get('job_title', user.job_title)
             user.is_active = user_details_data.get('is_active', user.is_active)
             user.save()
-        
+
         profile.save()
         return profile
 
@@ -262,15 +274,19 @@ class ProfileSerializer(serializers.ModelSerializer):
         if user_details_data:
             user = instance.user
             user.email = user_details_data.get('email', user.email)
-            user.first_name = user_details_data.get('first_name', user.first_name)
+            user.first_name = user_details_data.get(
+                'first_name', user.first_name)
             user.last_name = user_details_data.get('last_name', user.last_name)
-            user.profile_pic = user_details_data.get('profile_pic', user.profile_pic)
+            user.profile_pic = user_details_data.get(
+                'profile_pic', user.profile_pic)
             user.job_title = user_details_data.get('job_title', user.job_title)
             user.is_active = user_details_data.get('is_active', user.is_active)
             user.save()
 
         instance.save()
         return instance
+
+
 class AttachmentsSerializer(serializers.ModelSerializer):
     file_path = serializers.SerializerMethodField()
 
