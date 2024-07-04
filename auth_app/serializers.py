@@ -76,3 +76,19 @@ class ChangePasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 {"old_password": "Old password is not correct"})
         return data
+
+class ChangePasswordByIdSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True, write_only=True)
+    new_password = serializers.CharField(required=True, write_only=True)
+
+    def validate_new_password(self, value):
+        password_validation.validate_password(value)
+        return value
+
+    def validate(self, data):
+        user = self.context['user']
+
+        if not user.check_password(data['old_password']):
+            raise serializers.ValidationError(
+                {"old_password": "Old password is not correct"})
+        return data

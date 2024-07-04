@@ -1,10 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.exceptions import NotFound
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate, get_user_model, update_session_auth_hash
-from .serializers import LoginSerializer, RegisterSerializer, ChangePasswordSerializer
+from .serializers import LoginSerializer, RegisterSerializer, ChangePasswordSerializer, ChangePasswordByIdSerializer
 from drf_spectacular.utils import extend_schema
 import logging
 from invitation.models import Invitation
@@ -106,6 +107,31 @@ class ChangePasswordView(APIView):
             user.set_password(serializer.validated_data['new_password'])
             user.save()
             update_session_auth_hash(request, user)  # Important to keep the user authenticated
+            return Response({"detail": "Password has been changed successfully"}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ChangePasswordByIdView(APIView):
+    """
+    Change password view by admin
+    """
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(
+        description="Change password for a user by admin",
+        request=ChangePasswordByIdSerializer
+    )
+    def post(self, request, user_id):
+        User = get_user_model()
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            raise NotFound("User not found")
+
+        serializer = ChangePasswordByIdSerializer(data=request.data, context={'request': request, 'user': user})
+        if serializer.is_valid():
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
             return Response({"detail": "Password has been changed successfully"}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
