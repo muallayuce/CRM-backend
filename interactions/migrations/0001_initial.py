@@ -3,6 +3,7 @@
 import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
+import uuid
 
 
 class Migration(migrations.Migration):
@@ -19,7 +20,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Interaction',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('description', models.TextField(blank=True)),
                 ('contact', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contacts.contact')),

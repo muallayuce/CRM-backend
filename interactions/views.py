@@ -13,9 +13,9 @@ class InteractionListCreateAPIView(APIView):
 
     @extend_schema(
         parameters=[
-            OpenApiParameter('user', OpenApiTypes.INT, description='Filter by user ID'),
-            OpenApiParameter('interact_with', OpenApiTypes.INT, description='Filter by interact_with ID'),
-            OpenApiParameter('contact', OpenApiTypes.INT, description='Filter by contact ID')
+            OpenApiParameter('user', OpenApiTypes.STR, description='Filter by user ID'),
+            OpenApiParameter('interact_with', OpenApiTypes.STR, description='Filter by interact_with ID'),
+            OpenApiParameter('contact', OpenApiTypes.STR, description='Filter by contact ID')
         ],
         responses={200: InteractionSerializer(many=True)},
         description="Retrieve a list of interactions or create a new interaction."
@@ -61,6 +61,11 @@ class InteractionDetailAPIView(APIView):
             return Interaction.objects.get(pk=pk)
         except Interaction.DoesNotExist:
             raise NotFound()
+        
+    @extend_schema(
+        responses={200: InteractionSerializer},
+        description="Retrieve a specific interaction."
+    )
 
     def get(self, request, pk):
         interaction = self.get_object(pk)
