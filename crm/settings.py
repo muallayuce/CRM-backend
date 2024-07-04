@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     "teams",
     "auth_app",
     "invitation",
+    "interactions",
 ]
 
 MIDDLEWARE = [

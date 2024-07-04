@@ -30,4 +30,5 @@ urlpatterns = [
     path('check-user-count/', views.CheckUserCountView.as_view(), name='check-user-count'),
     
     path('invitation/', include('invitation.urls')),
+    path('interactions/', include('interactions.urls')),
 ]
