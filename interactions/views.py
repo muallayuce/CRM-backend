@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,9 +8,48 @@ from drf_spectacular.types import OpenApiTypes
 from .models import Interaction
 from .serializers import InteractionSerializer
 from rest_framework.permissions import IsAuthenticated
+from contacts.models import Contact
+from common.models import Profile
+from leads.models import Lead
+from rest_framework.pagination import LimitOffsetPagination
 
-class InteractionListCreateAPIView(APIView):
+
+class InteractionListCreateAPIView(APIView, LimitOffsetPagination):
     permission_classes = (IsAuthenticated,)
+    model = Interaction
+
+    def get_context_data(self, **kwargs):
+        params = self.request.query_params
+        queryset = (
+            Interaction.objects
+            .order_by("-id")
+        )
+
+        if params:
+            if params.get("name"):
+                queryset = queryset.filter(
+                    Q(first_name__icontains=params.get("name")) | Q(last_name__icontains=params.get("name"))
+                )
+
+        context = {}
+        results_interactions = self.paginate_queryset(queryset.distinct(), self.request, view=self)
+        interactions = InteractionSerializer(results_interactions, many=True).data
+        context["per_page"] = 10
+        context["page_number"] = int(self.offset / 10) + 1 if self.offset else 1
+        context["interactions"] = {
+            "interactions_count": self.count,
+            "interactions": interactions,
+            "offset": self.offset if self.offset else 0,
+        }
+
+        contacts = Contact.objects.filter(org=self.request.profile.org).values("id", "first_name", "last_name")
+        context["contacts"] = contacts
+        users = Profile.objects.filter(is_active=True, org=self.request.profile.org).values("id", "user__email")
+        context["users"] = users
+        leads = Lead.objects.filter(org=self.request.profile.org).values("id", "account_name")
+        context["leads"] = leads
+
+        return context
 
     @extend_schema(
         parameters=[
@@ -17,10 +57,10 @@ class InteractionListCreateAPIView(APIView):
             OpenApiParameter('interact_with', OpenApiTypes.STR, description='Filter by interact_with ID'),
             OpenApiParameter('contact', OpenApiTypes.STR, description='Filter by contact ID')
         ],
-        responses={200: InteractionSerializer(many=True)},
+        #responses={200: InteractionSerializer(many=True)},
         description="Retrieve a list of interactions or create a new interaction."
     )
-    def get(self, request):
+    def get(self, request, **kwargs):
         user_id = request.query_params.get('user')
         interact_with_id = request.query_params.get('interact_with')
         contact_id = request.query_params.get('contact')
@@ -34,8 +74,9 @@ class InteractionListCreateAPIView(APIView):
         if contact_id:
             interactions = interactions.filter(contact_id=contact_id)
         
-        serializer = InteractionSerializer(interactions, many=True)
-        return Response(serializer.data)
+        #serializer = InteractionSerializer(interactions, many=True)
+        context = self.get_context_data(**kwargs)
+        return Response(context)
 
     @extend_schema(
         request=InteractionSerializer,
