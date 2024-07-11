@@ -42,8 +42,8 @@ from leads.serializer import (
 from common.models import User
 from leads.tasks import (
     create_lead_from_file,
-    send_email_to_assigned_user,
-    send_lead_assigned_emails,
+    #send_email_to_assigned_user,
+    #send_lead_assigned_emails,
 )
 from teams.models import Teams
 from teams.serializer import TeamsSerializer
@@ -164,11 +164,11 @@ class LeadListView(APIView, LimitOffsetPagination):
                 )
                 lead_obj.contacts.add(*obj_contact)
 
-            recipients = list(lead_obj.assigned_to.all().values_list("id", flat=True))
+            """recipients = list(lead_obj.assigned_to.all().values_list("id", flat=True))
             send_email_to_assigned_user.delay(
                 recipients,
                 lead_obj.id,
-            )
+            )"""
 
             if request.FILES.get("lead_attachment"):
                 attachment = Attachments()
@@ -218,13 +218,12 @@ class LeadListView(APIView, LimitOffsetPagination):
                 for tag in lead_obj.tags.all():
                     account_object.tags.add(tag)
 
-                if data.get("assigned_to",None):
+                """if data.get("assigned_to",None):
                     assigned_to_list = data.getlist("assigned_to")
                     recipients = assigned_to_list
                     send_email_to_assigned_user.delay(
-                        recipients,
-                        lead_obj.id,
-                    )
+                        #recipients,
+                        #lead_obj.id,)"""
                 return Response(
                     {
                         "error": False,
@@ -377,7 +376,7 @@ class LeadDetailView(APIView):
             lead_obj.assigned_to.add(*profiles)
             new_assigned_to_users = list(profiles.values_list("id", flat=True))
             recipients = list(set(new_assigned_to_users) - set(previous_assigned_to_users))
-            send_email_to_assigned_user.delay(recipients, lead_obj.id)
+            #send_email_to_assigned_user.delay(recipients, lead_obj.id)
 
     def handle_contacts(self, params, lead_obj):
         lead_obj.contacts.clear()
@@ -421,7 +420,7 @@ class LeadDetailView(APIView):
             account_object.tags.add(tag)
         if params.get("assigned_to"):
             recipients = params.get("assigned_to")
-            send_email_to_assigned_user.delay(recipients, lead_obj.id)
+            #send_email_to_assigned_user.delay(recipients, lead_obj.id)
 
 
 
@@ -575,8 +574,8 @@ class CreateLeadFromSite(APIView):
             )
             lead.assigned_to.add(user)
             # Send Email to Assigned Users
-            site_address = request.scheme + "://" + request.META["HTTP_HOST"]
-            send_lead_assigned_emails.delay(lead.id, [user.id], site_address)
+            #site_address = request.scheme + "://" + request.META["HTTP_HOST"]
+            #send_lead_assigned_emails.delay(lead.id, [user.id], site_address)
             # Create Contact
             try:
                 contact = Contact.objects.create(
