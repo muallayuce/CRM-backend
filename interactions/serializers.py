@@ -12,7 +12,7 @@ class InteractionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Interaction
-        fields = ['id', 'user', 'created_at', 'updated_at', 'start_at', 'end_at', 'type', 'interact_with', 'contact', 'description']
+        fields = ['id', 'user', 'created_at', 'updated_at', 'start_at', 'end_at', 'duration', 'type', 'interact_with', 'contact', 'description']
 
 class InteractionCreateSerializer(serializers.ModelSerializer):
     
