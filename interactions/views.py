@@ -6,7 +6,7 @@ from rest_framework.exceptions import NotFound
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 from .models import Interaction
-from .serializers import InteractionSerializer
+from .serializers import *
 from rest_framework.permissions import IsAuthenticated
 from contacts.models import Contact
 from common.models import Profile
@@ -79,12 +79,12 @@ class InteractionListCreateAPIView(APIView, LimitOffsetPagination):
         return Response(context)
 
     @extend_schema(
-        request=InteractionSerializer,
-        responses={201: InteractionSerializer},
+        request=InteractionCreateSerializer,
+        responses={201: InteractionCreateSerializer},
         description="Create a new interaction."
     )
     def post(self, request):
-        serializer = InteractionSerializer(data=request.data)
+        serializer = InteractionCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -114,13 +114,13 @@ class InteractionDetailAPIView(APIView):
         return Response(serializer.data)
 
     @extend_schema(
-        request=InteractionSerializer,
-        responses={200: InteractionSerializer},
+        request=InteractionCreateSerializer,
+        responses={200: InteractionCreateSerializer},
         description="Update a specific interaction."
     )
     def put(self, request, pk):
         interaction = self.get_object(pk)
-        serializer = InteractionSerializer(interaction, data=request.data)
+        serializer = InteractionCreateSerializer(interaction, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
