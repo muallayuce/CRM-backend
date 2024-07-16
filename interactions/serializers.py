@@ -15,6 +15,8 @@ class InteractionSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'created_at', 'updated_at', 'start_at', 'end_at', 'duration', 'type', 'interact_with', 'contact', 'description']
 
 class InteractionCreateSerializer(serializers.ModelSerializer):
+    start_at = serializers.DateTimeField(required=False, allow_null=True)
+    end_at = serializers.DateTimeField(required=False, allow_null=True)
     
     class Meta:
         model = Interaction

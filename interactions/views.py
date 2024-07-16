@@ -92,6 +92,7 @@ class InteractionListCreateAPIView(APIView, LimitOffsetPagination):
 
 class InteractionDetailAPIView(APIView):
     permission_classes = (IsAuthenticated,)
+    model = Interaction
     
     @extend_schema(
         responses={200: InteractionSerializer},
@@ -133,4 +134,4 @@ class InteractionDetailAPIView(APIView):
     def delete(self, request, pk):
         interaction = self.get_object(pk)
         interaction.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"error": False, 'message': 'Deleted successfully'}, status=status.HTTP_200_OK)
