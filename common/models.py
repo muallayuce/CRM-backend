@@ -224,6 +224,8 @@ class Profile(BaseModel):
     is_active = models.BooleanField(default=True)
     is_organization_admin = models.BooleanField(default=False)
     date_of_joining = models.DateField(null=True, blank=True)
+    expertise = models.CharField(max_length=50, choices=[('junior', 'Junior'), ('medior', 'Medior'), ('senior', 'Senior'), ('N/A', 'N/A')], blank=True, null=True)
+    workload = models.IntegerField(default=0)
 
     class Meta:
         verbose_name = "Profile"
