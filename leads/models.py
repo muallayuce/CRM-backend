@@ -5,7 +5,7 @@ from django.utils.translation import pgettext_lazy
 from phonenumber_field.modelfields import PhoneNumberField
 
 from accounts.models import Tags
-from common.models import Org, Profile
+from common.models import Org, Profile, Attachments
 from common.base import BaseModel
 from common.utils import (
     COUNTRIES,
@@ -84,6 +84,14 @@ class Lead(BaseModel):
     probability = models.IntegerField(default=0, blank=True, null=True)
     close_date = models.DateField(default=None, null=True)
 
+    """ THIS PIECE OF CODE MAY NOT BE NECESSARY:
+    lead_attachment = models.ManyToOneRel(
+        Attachments,
+        related_name="attachments",
+        to="attachments",
+        field_name="lead_id"
+    )
+"""
     class Meta:
         verbose_name = "Lead"
         verbose_name_plural = "Leads"
