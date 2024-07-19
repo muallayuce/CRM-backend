@@ -6,7 +6,7 @@ from leads.serializer import LeadSerializer
 from .models import Interaction
 
 class InteractionSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+    user = UserSerializer(read_only=True, required=False)
     interact_with = LeadSerializer(read_only=True)
     contact = ContactSerializer(read_only=True)
 
