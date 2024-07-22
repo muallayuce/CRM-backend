@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from common.models import Profile
 from common.serializer import ProfileSerializer,UserSerializer
 from teams.models import Teams
 
@@ -22,7 +23,10 @@ class TeamsSerializer(serializers.ModelSerializer):
 
 
 class TeamCreateSerializer(serializers.ModelSerializer):
-    
+    users = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Profile.objects.all(), required=False
+    )
+
     def __init__(self, *args, **kwargs):
         request_obj = kwargs.pop("request_obj", None)
         super().__init__(*args, **kwargs)
@@ -40,9 +44,16 @@ class TeamCreateSerializer(serializers.ModelSerializer):
             ):
                 raise serializers.ValidationError("Team already exists with this name")
         else:
-            if Teams.objects.filter(name__iexact=name).exists():
+            if Teams.objects.filter(name__iexact=name, org=self.org).exists():
                 raise serializers.ValidationError("Team already exists with this name")
         return name
+
+    def create(self, validated_data):
+        users = validated_data.pop('users', [])
+        team = Teams.objects.create(org=self.org, **validated_data)
+        if users:
+            team.users.set(users)
+        return team
 
     class Meta:
         model = Teams
@@ -52,8 +63,9 @@ class TeamCreateSerializer(serializers.ModelSerializer):
             "created_at",
             "created_by",
             "created_on_arrow",
-            "org",
+            "users",  # Removed "org" from fields as it's handled in create method
         )
+
 
 class TeamswaggerCreateSerializer(serializers.ModelSerializer):
 
