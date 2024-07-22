@@ -78,19 +78,9 @@ class TeamsListView(APIView, LimitOffsetPagination):
                 },
                 status=status.HTTP_403_FORBIDDEN,
             )
-        params = self.request.data
-        print(request,self.request)
-        serializer = TeamCreateSerializer(data=params, request_obj=request)
+        serializer = TeamCreateSerializer(data=request.data, request_obj=self.request)
         if serializer.is_valid():
-            team_obj = serializer.save(org=request.profile.org)
-
-            if params.get("assign_users"):
-                assinged_to_list = params.get("users")
-                profiles = Profile.objects.filter(
-                    id__in=assinged_to_list, org=request.profile.org
-                )
-                if profiles:
-                    team_obj.users.add(*profiles)
+            team_obj = serializer.save()
             return Response(
                 {"error": False, "message": "Team Created Successfully"},
                 status=status.HTTP_200_OK,
