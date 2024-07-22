@@ -11,7 +11,8 @@ from rest_framework.views import APIView
 from accounts.models import Account, Tags
 from common.access_decorators_mixins import AdminPermission, MarketingAccessPermission, SalesManagerAccessPermission
 from common.models import APISettings, Attachments, Comment, Profile
-
+from django.core.files.base import ContentFile
+import base64
 
 #from common.external_auth import CustomDualAuthentication
 from common.serializer import (
@@ -142,7 +143,9 @@ class LeadListView(APIView, LimitOffsetPagination):
         tags=["Leads"],description="Leads Create", parameters=swagger_params1.organization_params,request=LeadCreateSwaggerSerializer
     )
     def post(self, request, *args, **kwargs):
-        print(f"Inside LeadListView POST. User: {request.user}")
+        print(f"print Inside LeadListView POST. User: {request.user}")
+
+        logger.error(f"Inside LeadListView POST. User: {request.user}")
         data = request.data
         serializer = LeadCreateSerializer(data=data, request_obj=request)
         if serializer.is_valid():
@@ -169,6 +172,19 @@ class LeadListView(APIView, LimitOffsetPagination):
                 recipients,
                 lead_obj.id,
             )"""
+            logger.error(f'request {request}')
+            logger.error(f'FILES {request.FILES}')
+            if data.get("lead_attachment"):
+                attachment = Attachments()
+                datapk = data.get("lead_attachment")
+                format, datastr = datapk.split(';base64,')
+                dataBytes = base64.b64decode(datastr)
+                fileName = 'attachment.bin'
+                attachment.file_name = fileName
+                attachment.attachment = ContentFile(dataBytes, fileName)
+                attachment.created_by = request.profile.user
+                attachment.lead = lead_obj
+                attachment.save()
 
             if request.FILES.get("lead_attachment"):
                 attachment = Attachments()

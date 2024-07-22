@@ -303,7 +303,7 @@ class AttachmentsSerializer(serializers.ModelSerializer):
     def get_file_path(self, obj):
         if obj.attachment:
             return obj.attachment.url
-        None
+        return None
 
     class Meta:
         model = Attachments
