@@ -235,6 +235,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "is_active",
             "is_organization_admin",
             "expertise",
+            "workload",
 
         )
 
@@ -242,6 +243,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         address_data = validated_data.pop('address', None)
         user_details_data = validated_data.pop('user', None)
         expertise = validated_data.pop('expertise', None)
+        workload = validated_data.pop('workload', None)
         profile = Profile.objects.create(**validated_data)
 
         if address_data:
@@ -263,6 +265,9 @@ class ProfileSerializer(serializers.ModelSerializer):
         if expertise:
             profile.expertise = expertise
 
+        if workload is not None:
+            profile.workload = workload
+
         profile.save()
         return profile
 
@@ -270,6 +275,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         address_data = validated_data.pop('address', None)
         user_details_data = validated_data.pop('user', None)
         expertise = validated_data.pop('expertise', None)
+        workload = validated_data.pop('workload', None)  # Add workload if needed
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -292,6 +298,9 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         if expertise:
             instance.expertise = expertise
+
+        if workload is not None:
+            instance.workload = workload
 
         instance.save()
         return instance

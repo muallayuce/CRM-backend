@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from accounts.models import Account, Tags
+from common.models import Profile
 from common.serializer import (
     AttachmentsSerializer,
     LeadCommentSerializer,
@@ -83,6 +84,47 @@ class LeadSerializer(serializers.ModelSerializer):
             "probability",
             "close_date",
         )
+
+    def create(self, validated_data):
+        assigned_to_data = validated_data.pop('assigned_to', [])
+        lead = Lead.objects.create(**validated_data)
+
+        # Increase workload for newly assigned profiles
+        for profile_data in assigned_to_data:
+            profile = Profile.objects.get(id=profile_data['id'])
+            profile.workload += 1
+            profile.save()
+            lead.assigned_to.add(profile)
+
+        lead.save()
+        return lead
+
+    def update(self, instance, validated_data):
+        assigned_to_data = validated_data.pop('assigned_to', [])
+        current_assigned_profiles = set(instance.assigned_to.all())
+        new_assigned_profiles = set()
+
+        # Increase workload for newly assigned profiles
+        for profile_data in assigned_to_data:
+            profile = Profile.objects.get(id=profile_data['id'])
+            if profile not in current_assigned_profiles:
+                profile.workload += 1
+                profile.save()
+            new_assigned_profiles.add(profile)
+            instance.assigned_to.add(profile)
+
+        # Decrease workload for profiles that are no longer assigned
+        for profile in current_assigned_profiles:
+            if profile not in new_assigned_profiles:
+                profile.workload -= 1
+                profile.save()
+                instance.assigned_to.remove(profile)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
 
 
 class LeadCreateSerializer(serializers.ModelSerializer):
