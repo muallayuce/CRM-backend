@@ -24,6 +24,10 @@ class InteractionListCreateAPIView(APIView, LimitOffsetPagination):
             Interaction.objects
             .order_by("-id")
         )
+        if self.request.profile.role != "ADMIN" and not self.request.profile.is_admin:
+            queryset = queryset.filter(
+                Q(user_id=self.request.profile.user)
+            ).distinct()
 
         if params:
             if params.get("name"):
@@ -74,7 +78,6 @@ class InteractionListCreateAPIView(APIView, LimitOffsetPagination):
         if contact_id:
             interactions = interactions.filter(contact_id=contact_id)
         
-        #serializer = InteractionSerializer(interactions, many=True)
         context = self.get_context_data(**kwargs)
         return Response(context)
 
