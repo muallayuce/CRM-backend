@@ -19,6 +19,7 @@ class ContactSerializer(serializers.ModelSerializer):
     get_assigned_users_not_in_teams = ProfileSerializer(read_only=True, many=True)
     contact_attachment = AttachmentsSerializer(read_only=True, many=True)
     date_of_birth = serializers.DateField()
+    date_dnc = serializers.DateField()
     org = OrganizationSerializer()
     country = serializers.SerializerMethodField()
 
@@ -44,6 +45,7 @@ class ContactSerializer(serializers.ModelSerializer):
             "country",
             "language",
             "do_not_call",
+            "date_dnc",
             "address",
             "description",
             "linked_in_url",
@@ -108,6 +110,7 @@ class CreateContactSerializer(serializers.ModelSerializer):
             "country",
             "language",
             "do_not_call",
+            "date_dnc",
             "address",
             "description",
             "linked_in_url",
