@@ -624,11 +624,12 @@ class ProfileUpdateView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+        """ ONLY AN ADMIN CAN UPDATE THE PROFILE
         if request.user.profile.role != "ADMIN" and not request.user.is_superuser:
             return Response(
                 {"error": True, "errors": "You do not have permission to perform this action"},
                 status=status.HTTP_403_FORBIDDEN,
-            )
+            )"""
 
         serializer = ProfileSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():
