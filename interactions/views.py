@@ -9,7 +9,7 @@ from .models import Interaction
 from .serializers import *
 from rest_framework.permissions import IsAuthenticated
 from contacts.models import Contact
-from common.models import Profile
+from common.models import User
 from leads.models import Lead
 from rest_framework.pagination import LimitOffsetPagination
 
@@ -48,7 +48,7 @@ class InteractionListCreateAPIView(APIView, LimitOffsetPagination):
 
         contacts = Contact.objects.filter(org=self.request.profile.org).values("id", "first_name", "last_name")
         context["contacts"] = contacts
-        users = Profile.objects.filter(is_active=True, org=self.request.profile.org).values("id", "user__email")
+        users = User.objects.filter(is_active=True).values("id", "email")
         context["users"] = users
         leads = Lead.objects.filter(org=self.request.profile.org).values("id", "account_name")
         context["leads"] = leads
