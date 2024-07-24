@@ -50,3 +50,9 @@ class Interaction(models.Model):
     @property
     def created_on(self):
         return self.created_at
+    
+    @property
+    def duration(self):
+        if self.start_at and self.end_at:
+            return self.end_at - self.start_at
+        return None
