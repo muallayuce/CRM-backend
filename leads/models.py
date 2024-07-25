@@ -17,6 +17,11 @@ from common.utils import (
 from contacts.models import Contact
 from teams.models import Teams
 
+import logging
+
+
+logger = logging.getLogger(__name__)
+
 
 class Company(BaseModel):
     name = models.CharField(max_length=100, blank=True, null=True)
@@ -132,6 +137,46 @@ class Lead(BaseModel):
         assigned_user_ids = list(self.assigned_to.values_list("id", flat=True))
         user_ids = set(assigned_user_ids) - set(team_user_ids)
         return Profile.objects.filter(id__in=list(user_ids))
+    
+    def save(self, *args, **kwargs):
+        # Get the previous instance of the Lead, if it exists
+        previous = Lead.objects.filter(pk=self.pk).first()
+        
+        logger.debug("Previous lead instance: %s", previous)
+        
+        # Call the parent's save method to ensure the instance is saved correctly
+        super(Lead, self).save(*args, **kwargs)
+        
+        # Get current assigned profiles
+        current_assigned_profiles = self.assigned_to.all()
+        
+        logger.debug("Current assigned profiles: %s", current_assigned_profiles)
+
+        if previous:
+            # Get previously assigned profiles
+            previous_assigned_profiles = previous.assigned_to.all()
+            
+            logger.debug("Previous assigned profiles: %s", previous_assigned_profiles)
+            
+            # Increase workload for newly assigned profiles
+            for profile in current_assigned_profiles:
+                if profile not in previous_assigned_profiles:
+                    profile.workload += 1
+                    profile.save()
+                    logger.debug("Increased workload for profile: %s", profile)
+
+            # Decrease workload for profiles that are no longer assigned
+            for profile in previous_assigned_profiles:
+                if profile not in current_assigned_profiles:
+                    profile.workload -= 1
+                    profile.save()
+                    logger.debug("Decreased workload for profile: %s", profile)
+        else:
+            # If this is a new Lead, increase workload for all assigned profiles
+            for profile in current_assigned_profiles:
+                profile.workload += 1
+                profile.save()
+                logger.debug("Increased workload for new lead profile: %s", profile)
 
     # def save(self, *args, **kwargs):
     #     super(Lead, self).save(*args, **kwargs)

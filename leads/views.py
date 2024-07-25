@@ -13,6 +13,7 @@ from common.access_decorators_mixins import AdminPermission, MarketingAccessPerm
 from common.models import APISettings, Attachments, Comment, Profile
 from django.core.files.base import ContentFile
 import base64
+from django.db import transaction
 
 #from common.external_auth import CustomDualAuthentication
 from common.serializer import (
@@ -149,108 +150,101 @@ class LeadListView(APIView, LimitOffsetPagination):
         data = request.data
         serializer = LeadCreateSerializer(data=data, request_obj=request)
         if serializer.is_valid():
-            lead_obj = serializer.save(created_by=request.profile.user
-            , org=request.profile.org)
-            if data.get("tags",None):
-                tags = data.get("tags")
-                for t in tags:
-                    tag = Tags.objects.filter(slug=t.lower())
-                    if tag.exists():
-                        tag = tag[0]
-                    else:
-                        tag = Tags.objects.create(name=t)
-                    lead_obj.tags.add(tag)
+            with transaction.atomic():
+                lead_obj = serializer.save(created_by=request.profile.user, org=request.profile.org)
 
-            if data.get("contacts",None):
-                obj_contact = Contact.objects.filter(
-                    id__in=data.get("contacts"), org=request.profile.org
-                )
-                lead_obj.contacts.add(*obj_contact)
+                if data.get("tags", None):
+                    tags = data.get("tags")
+                    for t in tags:
+                        tag = Tags.objects.filter(slug=t.lower())
+                        if tag.exists():
+                            tag = tag[0]
+                        else:
+                            tag = Tags.objects.create(name=t)
+                        lead_obj.tags.add(tag)
 
-            """recipients = list(lead_obj.assigned_to.all().values_list("id", flat=True))
-            send_email_to_assigned_user.delay(
-                recipients,
-                lead_obj.id,
-            )"""
-            logger.error(f'request {request}')
-            logger.error(f'FILES {request.FILES}')
-            if data.get("lead_attachment"):
-                attachment = Attachments()
-                datapk = data.get("lead_attachment")
-                format, datastr = datapk.split(';base64,')
-                dataBytes = base64.b64decode(datastr)
-                fileName = 'attachment.bin'
-                attachment.file_name = fileName
-                attachment.attachment = ContentFile(dataBytes, fileName)
-                attachment.created_by = request.profile.user
-                attachment.lead = lead_obj
-                attachment.save()
+                if data.get("contacts", None):
+                    obj_contact = Contact.objects.filter(
+                        id__in=data.get("contacts"), org=request.profile.org
+                    )
+                    lead_obj.contacts.add(*obj_contact)
 
-            if request.FILES.get("lead_attachment"):
-                attachment = Attachments()
-                attachment.created_by = request.profile.user
-                attachment.file_name = request.FILES.get("lead_attachment").name
-                attachment.lead = lead_obj
-                attachment.attachment = request.FILES.get("lead_attachment")
-                attachment.save()
+                if data.get("lead_attachment"):
+                    attachment = Attachments()
+                    datapk = data.get("lead_attachment")
+                    format, datastr = datapk.split(';base64,')
+                    dataBytes = base64.b64decode(datastr)
+                    fileName = 'attachment.bin'
+                    attachment.file_name = fileName
+                    attachment.attachment = ContentFile(dataBytes, fileName)
+                    attachment.created_by = request.profile.user
+                    attachment.lead = lead_obj
+                    attachment.save()
 
-            if data.get("teams",None):
-                teams_list = data.get("teams")
-                teams = Teams.objects.filter(id__in=teams_list, org=request.profile.org)
-                lead_obj.teams.add(*teams)
+                if request.FILES.get("lead_attachment"):
+                    attachment = Attachments()
+                    attachment.created_by = request.profile.user
+                    attachment.file_name = request.FILES.get("lead_attachment").name
+                    attachment.lead = lead_obj
+                    attachment.attachment = request.FILES.get("lead_attachment")
+                    attachment.save()
 
-            if data.get("assigned_to",None):
-                assinged_to_list = data.get("assigned_to")
-                profiles = Profile.objects.filter(
-                    id__in=assinged_to_list, org=request.profile.org
-                )
-                lead_obj.assigned_to.add(*profiles)
+                if data.get("teams", None):
+                    teams_list = data.get("teams")
+                    teams = Teams.objects.filter(id__in=teams_list, org=request.profile.org)
+                    lead_obj.teams.add(*teams)
 
-            if data.get("status") == "converted":
-                account_object = Account.objects.create(
-                    created_by=request.profile.user,
-                    name=lead_obj.account_name,
-                    email=lead_obj.email,
-                    phone=lead_obj.phone,
-                    description=data.get("description"),
-                    website=data.get("website"),
-                    org=request.profile.org,
-                )
+                if data.get("assigned_to", None):
+                    assigned_to_list = data.get("assigned_to")
+                    profiles = Profile.objects.filter(
+                        id__in=assigned_to_list, org=request.profile.org
+                    )
+                    lead_obj.assigned_to.add(*profiles)
 
-                account_object.billing_address_line = lead_obj.address_line
-                account_object.billing_street = lead_obj.street
-                account_object.billing_city = lead_obj.city
-                account_object.billing_state = lead_obj.state
-                account_object.billing_postcode = lead_obj.postcode
-                account_object.billing_country = lead_obj.country
-                comments = Comment.objects.filter(lead=self.lead_obj)
-                if comments.exists():
-                    for comment in comments:
-                        comment.account_id = account_object.id
-                attachments = Attachments.objects.filter(lead=self.lead_obj)
-                if attachments.exists():
-                    for attachment in attachments:
-                        attachment.account_id = account_object.id
-                for tag in lead_obj.tags.all():
-                    account_object.tags.add(tag)
+                    # Increment workload for each assigned profile
+                    for profile in profiles:
+                        profile.workload += 1
+                        profile.save()
 
-                """if data.get("assigned_to",None):
-                    assigned_to_list = data.getlist("assigned_to")
-                    recipients = assigned_to_list
-                    send_email_to_assigned_user.delay(
-                        #recipients,
-                        #lead_obj.id,)"""
+                if data.get("status") == "converted":
+                    account_object = Account.objects.create(
+                        created_by=request.profile.user,
+                        name=lead_obj.account_name,
+                        email=lead_obj.email,
+                        phone=lead_obj.phone,
+                        description=data.get("description"),
+                        website=data.get("website"),
+                        org=request.profile.org,
+                    )
+
+                    account_object.billing_address_line = lead_obj.address_line
+                    account_object.billing_street = lead_obj.street
+                    account_object.billing_city = lead_obj.city
+                    account_object.billing_state = lead_obj.state
+                    account_object.billing_postcode = lead_obj.postcode
+                    account_object.billing_country = lead_obj.country
+                    comments = Comment.objects.filter(lead=self.lead_obj)
+                    if comments.exists():
+                        for comment in comments:
+                            comment.account_id = account_object.id
+                    attachments = Attachments.objects.filter(lead=self.lead_obj)
+                    if attachments.exists():
+                        for attachment in attachments:
+                            attachment.account_id = account_object.id
+                    for tag in lead_obj.tags.all():
+                        account_object.tags.add(tag)
+
+                    return Response(
+                        {
+                            "error": False,
+                            "message": "Lead Converted to Account Successfully",
+                        },
+                        status=status.HTTP_200_OK,
+                    )
                 return Response(
-                    {
-                        "error": False,
-                        "message": "Lead Converted to Account Successfully",
-                    },
+                    {"error": False, "message": "Lead Created Successfully"},
                     status=status.HTTP_200_OK,
                 )
-            return Response(
-                {"error": False, "message": "Lead Created Successfully"},
-                status=status.HTTP_200_OK,
-            )
         return Response(
             {"error": True, "errors": serializer.errors},
             status=status.HTTP_400_BAD_REQUEST,
