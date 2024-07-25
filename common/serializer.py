@@ -469,6 +469,7 @@ class UserCreateSwaggerSerializer(serializers.Serializer):
 
     email = serializers.CharField(max_length=1000, required=True)
     role = serializers.ChoiceField(choices=ROLE_CHOICES, required=True)
+    job_title = serializers.CharField(max_length=1000)
     phone = serializers.CharField(max_length=12)
     alternate_phone = serializers.CharField(max_length=12)
     address_line = serializers.CharField(max_length=10000, required=True)
