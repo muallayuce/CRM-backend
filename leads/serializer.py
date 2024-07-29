@@ -45,7 +45,7 @@ class LeadSerializer(serializers.ModelSerializer):
     lead_comments = LeadCommentSerializer(read_only=True, many=True)
     meetings = MeetingSerializer(many=True, read_only=True)
     opportunity = OrganizationSerializer(read_only=True)
-    qualified = QualifiedSerializer(read_only=True)
+    qualified = QualifiedSerializer(many=True, read_only=True)
     negotiation = NegotiationSerializer(read_only=True)
     won = WonSerializer(read_only=True)
 
@@ -54,7 +54,7 @@ class LeadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lead
-        # fields = ‘__all__’
+        #fields = "__all__"
         fields = (
             "id",
             "title",

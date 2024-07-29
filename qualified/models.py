@@ -13,4 +13,4 @@ class Qualified(BaseModel):
         verbose_name_plural = "Qualifieds"
 
     def __str__(self):
-        return f"Qualified for Lead {self.lead_id}"
+        return f"Qualified for Lead {self.lead}"
