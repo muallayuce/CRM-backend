@@ -9,7 +9,9 @@ from won.models import Won
 
 @receiver(post_save, sender=Lead)
 def handle_status_change(sender, instance, **kwargs):
-    if instance.status == 'meeting':
+    if instance.status == 'lead':
+        Lead.objects.get_or_create(lead=instance)
+    elif instance.status == 'meeting':
         Meeting.objects.get_or_create(lead=instance)
     elif instance.status == 'opportunity':
         Opportunity.objects.get_or_create(lead=instance)

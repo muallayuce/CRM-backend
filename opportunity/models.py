@@ -8,11 +8,13 @@ from common.models import Org, Profile
 from common.base import BaseModel
 from common.utils import CURRENCY_CODES, SOURCES, STAGES
 from contacts.models import Contact
+from leads.models import Lead
 from teams.models import Teams
 
 
 class Opportunity(BaseModel):
-    name = models.CharField(pgettext_lazy("Name of Opportunity", "Name"), max_length=64)
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name="opportunities", default=None)
+    #name = models.CharField(pgettext_lazy("Name of Opportunity", "Name"), max_length=64)
     account = models.ForeignKey(
         Account,
         related_name="opportunities",
@@ -20,7 +22,7 @@ class Opportunity(BaseModel):
         blank=True,
         null=True,
     )
-    stage = models.CharField(
+    """stage = models.CharField(
         pgettext_lazy("Stage of Opportunity", "Stage"), max_length=64, choices=STAGES
     )
     currency = models.CharField(
@@ -42,9 +44,9 @@ class Opportunity(BaseModel):
         related_name="oppurtunity_closed_by",
     )
     # closed_on = models.DateTimeField(blank=True, null=True)
-    closed_on = models.DateField(blank=True, null=True)
+    closed_on = models.DateField(blank=True, null=True)"""
     description = models.TextField(blank=True, null=True)
-    assigned_to = models.ManyToManyField(
+    """assigned_to = models.ManyToManyField(
         Profile, related_name="opportunity_assigned_to"
     )
     is_active = models.BooleanField(default=False)
@@ -56,7 +58,7 @@ class Opportunity(BaseModel):
         null=True,
         blank=True,
         related_name="oppurtunity_org",
-    )
+    )"""
 
     class Meta:
         verbose_name = "Opportunity"
@@ -65,7 +67,7 @@ class Opportunity(BaseModel):
         ordering = ("-created_at",)
 
     def __str__(self):
-        return f"{self.name}"
+        return f"{self.lead}"
 
     @property
     def created_on_arrow(self):
