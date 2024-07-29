@@ -169,7 +169,7 @@ class LeadCreateSerializer(serializers.ModelSerializer):
             ):
                 raise serializers.ValidationError("Lead already exists with this name")
         else:
-            if Lead.objects.filter(title__iexact=account_name, org=self.org).exists():
+            if Lead.objects.filter(account_name__iexact=account_name, org=self.org).exists():
                 raise serializers.ValidationError("Lead already exists with this name")
         return account_name
 
