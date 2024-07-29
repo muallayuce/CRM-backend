@@ -71,11 +71,13 @@ ROLES = (
 )
 
 LEAD_STATUS = (
-    ("assigned", "Assigned"),
-    ("in process", "In Process"),
-    ("converted", "Converted"),
-    ("recycled", "Recycled"),
-    ("closed", "Closed"),
+    ('lead', 'Lead'),
+    ('meeting', 'Meeting'),
+    ('opportunity', 'Opportunity'),
+    ('qualified', 'Qualified'),
+    ('negotiation', 'Negotiation'),
+    ('won', 'Won'),
+    ('closed', 'Closed'),
 )
 
 

@@ -1,5 +1,8 @@
 from rest_framework import serializers
-
+from meeting.serializers import MeetingSerializer
+from negotiation.serializers import NegotiationSerializer
+from qualified.serializers import QualifiedSerializer
+from won.serializers import WonSerializer
 from accounts.models import Account, Tags
 from common.models import Profile
 from common.serializer import (
@@ -40,6 +43,11 @@ class LeadSerializer(serializers.ModelSerializer):
     lead_attachment = AttachmentsSerializer(read_only=True, many=True)
     teams = TeamsSerializer(read_only=True, many=True)
     lead_comments = LeadCommentSerializer(read_only=True, many=True)
+    meetings = MeetingSerializer(many=True, read_only=True)
+    opportunity = OrganizationSerializer(read_only=True)
+    qualified = QualifiedSerializer(read_only=True)
+    negotiation = NegotiationSerializer(read_only=True)
+    won = WonSerializer(read_only=True)
 
     def get_country(self, obj):
         return obj.get_country_display()
@@ -83,6 +91,11 @@ class LeadSerializer(serializers.ModelSerializer):
             "organization",
             "probability",
             "close_date",
+            "meetings",
+            "opportunity",
+            "qualified",
+            "negotiation",
+            "won",
         )
 
     def create(self, validated_data):

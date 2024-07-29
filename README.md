@@ -118,8 +118,12 @@ pip install -r .\requirements.txt
 
 
 ```
-python manage.py migrate
-python manage.py runserver
+docker exec -it crm-app /bin/bash
+cd ../app
+python3 manage.py startapp
+python3 manage.py makemigrations
+python3 manage.py migrate
+
 ```
 - Then open http://localhost:8000/swagger/ in your borwser to explore API.
 

@@ -45,7 +45,7 @@ class Lead(BaseModel):
     email = models.EmailField(null=True, blank=True)
     phone = PhoneNumberField(null=True, blank=True)
     status = models.CharField(
-        _("Status of Lead"), max_length=255, blank=True, null=True, choices=LEAD_STATUS
+        _("Status of Lead"), max_length=255, blank=True, null=True, choices=LEAD_STATUS, default='lead'
     )
     source = models.CharField(
         _("Source of Lead"), max_length=255, blank=True, null=True, choices=LEAD_SOURCE
