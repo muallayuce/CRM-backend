@@ -1,5 +1,8 @@
 from rest_framework import serializers
-
+from meeting.serializers import MeetingSerializer
+from negotiation.serializers import NegotiationSerializer
+from qualified.serializers import QualifiedSerializer
+from won.serializers import WonSerializer
 from accounts.models import Account, Tags
 from common.models import Profile
 from common.serializer import (
@@ -40,13 +43,18 @@ class LeadSerializer(serializers.ModelSerializer):
     lead_attachment = AttachmentsSerializer(read_only=True, many=True)
     teams = TeamsSerializer(read_only=True, many=True)
     lead_comments = LeadCommentSerializer(read_only=True, many=True)
+    meetings = MeetingSerializer(many=True, read_only=True)
+    opportunity = OrganizationSerializer(read_only=True)
+    qualified = QualifiedSerializer(many=True, read_only=True)
+    negotiation = NegotiationSerializer(read_only=True)
+    won = WonSerializer(read_only=True)
 
     def get_country(self, obj):
         return obj.get_country_display()
 
     class Meta:
         model = Lead
-        # fields = ‘__all__’
+        #fields = "__all__"
         fields = (
             "id",
             "title",
@@ -83,6 +91,11 @@ class LeadSerializer(serializers.ModelSerializer):
             "organization",
             "probability",
             "close_date",
+            "meetings",
+            "opportunity",
+            "qualified",
+            "negotiation",
+            "won",
         )
 
     def create(self, validated_data):
@@ -150,32 +163,15 @@ class LeadCreateSerializer(serializers.ModelSerializer):
     def validate_account_name(self, account_name):
         if self.instance:
             if (
-                Account.objects.filter(name__iexact=account_name, org=self.org)
+                Lead.objects.filter(account_name__iexact=account_name, org=self.org)
                 .exclude(id=self.instance.id)
                 .exists()
             ):
-                raise serializers.ValidationError(
-                    "Account already exists with this name"
-                )
+                raise serializers.ValidationError("Lead already exists with this name")
         else:
-            if Account.objects.filter(name__iexact=account_name, org=self.org).exists():
-                raise serializers.ValidationError(
-                    "Account already exists with this name"
-                )
+            if Lead.objects.filter(account_name__iexact=account_name, org=self.org).exists():
+                raise serializers.ValidationError("Lead already exists with this name")
         return account_name
-
-    def validate_title(self, title):
-        if self.instance:
-            if (
-                Lead.objects.filter(title__iexact=title, org=self.org)
-                .exclude(id=self.instance.id)
-                .exists()
-            ):
-                raise serializers.ValidationError("Lead already exists with this title")
-        else:
-            if Lead.objects.filter(title__iexact=title, org=self.org).exists():
-                raise serializers.ValidationError("Lead already exists with this title")
-        return title
 
     class Meta:
         model = Lead

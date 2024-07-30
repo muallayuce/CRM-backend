@@ -29,25 +29,11 @@ class OpportunitySerializer(serializers.ModelSerializer):
         # fields = ‘__all__’
         fields = (
             "id",
-            "name",
-            "stage",
-            "currency",
-            "amount",
-            "lead_source",
-            "probability",
-            "contacts",
-            "closed_by",
-            "closed_on",
+            "lead",
             "description",
-            "assigned_to",
+            "account",
             "created_by",
             "created_at",
-            "is_active",
-            "tags",
-            "opportunity_attachment",
-            "teams",
-            "created_on_arrow",
-            "account",
             # "get_team_users",
             # "get_team_and_assigned_users",
             # "get_assigned_users_not_in_teams",
@@ -63,66 +49,33 @@ class OpportunityCreateSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
         self.org = request_obj.profile.org
 
-    def validate_name(self, name):
-        if self.instance:
-            if (
-                Opportunity.objects.filter(name__iexact=name, org=self.org)
-                .exclude(id=self.instance.id)
-                .exists()
-            ):
-                raise serializers.ValidationError(
-                    "Opportunity already exists with this name"
-                )
-
-        else:
-            if Opportunity.objects.filter(name__iexact=name, org=self.org).exists():
-                raise serializers.ValidationError(
-                    "Opportunity already exists with this name"
-                )
-        return name
 
     class Meta:
         model = Opportunity
         fields = (
-            "name",
-            "account",
-            "stage",
-            "currency",
-            "amount",
-            "lead_source",
-            "probability",
-            "closed_on",
+            "id",
+            "lead",
             "description",
+            "account",
             "created_by",
             "created_at",
-            "is_active",
-            "created_on_arrow",
-            "org"
             # "get_team_users",
             # "get_team_and_assigned_users",
             # "get_assigned_users_not_in_teams",
         )
 
 class OpportunityCreateSwaggerSerializer(serializers.ModelSerializer):
-    due_date = serializers.DateField()
-    opportunity_attachment = serializers.FileField()
+    #due_date = serializers.DateField()
+    #opportunity_attachment = serializers.FileField()
     class Meta:
         model = Opportunity
         fields = (
-            "name",
-            "account",
-            "amount",
-            "currency",
-            "stage",
-            "teams",
-            "lead_source",
-            "probability",
+            "id",
+            "lead",
             "description",
-            "assigned_to",
-            "contacts",
-            "due_date",
-            "tags",
-            "opportunity_attachment"
+            "account",
+            "created_by",
+            "created_at",
         )
 
 class OpportunityDetailEditSwaggerSerializer(serializers.Serializer):
