@@ -97,6 +97,14 @@ class Lead(BaseModel):
         field_name="lead_id"
     )
 """
+
+    def delete(self, *args, **kwargs):
+        # Decrease workload for all profiles assigned to this lead
+        for profile in self.assigned_to.all():
+            profile.workload -= 1
+            profile.save()
+        super(Lead, self).delete(*args, **kwargs)
+        
     class Meta:
         verbose_name = "Lead"
         verbose_name_plural = "Leads"
