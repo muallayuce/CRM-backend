@@ -2,6 +2,7 @@ from rest_framework import serializers
 from meeting.serializers import MeetingSerializer
 from negotiation.serializers import NegotiationSerializer
 from qualified.serializers import QualifiedSerializer
+from teams.models import Teams
 from won.serializers import WonSerializer
 from accounts.models import Account, Tags
 from common.models import Profile
@@ -100,7 +101,12 @@ class LeadSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         assigned_to_data = validated_data.pop('assigned_to', [])
+        teams_data = validated_data.pop('teams', [])
         lead = Lead.objects.create(**validated_data)
+
+        if teams_data:
+            teams = Teams.objects.filter(id__in=teams_data)
+            lead.teams.add(*teams)
 
         # Increase workload for newly assigned profiles
         for profile_data in assigned_to_data:
