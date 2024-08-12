@@ -170,24 +170,40 @@ class LeadListView(APIView, LimitOffsetPagination):
                     lead_obj.contacts.add(*obj_contact)
 
                 if data.get("lead_attachment"):
-                    attachment = Attachments()
                     datapk = data.get("lead_attachment")
-                    format, datastr = datapk.split(';base64,')
-                    dataBytes = base64.b64decode(datastr)
-                    fileName = 'attachment.bin'
-                    attachment.file_name = fileName
-                    attachment.attachment = ContentFile(dataBytes, fileName)
-                    attachment.created_by = request.profile.user
-                    attachment.lead = lead_obj
-                    attachment.save()
-
-                if request.FILES.get("lead_attachment"):
-                    attachment = Attachments()
-                    attachment.created_by = request.profile.user
-                    attachment.file_name = request.FILES.get("lead_attachment").name
-                    attachment.lead = lead_obj
-                    attachment.attachment = request.FILES.get("lead_attachment")
-                    attachment.save()
+                    if isinstance(datapk, str) and ';base64,' in datapk:
+                        format, datastr = datapk.split(';base64,')
+                        dataBytes = base64.b64decode(datastr)
+                        fileName = 'attachment.bin'
+                        attachment = Attachments(
+                            file_name=fileName,
+                            attachment=ContentFile(dataBytes, fileName),
+                            created_by=request.profile.user,
+                            lead=lead_obj
+                        )
+                        attachment.save()
+                    elif isinstance(datapk, list):
+                        # Handle case where 'lead_attachment' might be a list of strings
+                        for base64_string in datapk:
+                            if ';base64,' in base64_string:
+                                format, datastr = base64_string.split(';base64,')
+                                dataBytes = base64.b64decode(datastr)
+                                fileName = 'attachment.bin'
+                                attachment = Attachments(
+                                    file_name=fileName,
+                                    attachment=ContentFile(dataBytes, fileName),
+                                    created_by=request.profile.user,
+                                    lead=lead_obj
+                                )
+                                attachment.save()
+                    elif request.FILES.get("lead_attachment"):
+                        attachment = Attachments(
+                            created_by=request.profile.user,
+                            file_name=request.FILES["lead_attachment"].name,
+                            lead=lead_obj,
+                            attachment=request.FILES["lead_attachment"]
+                        )
+                        attachment.save()
 
                 if data.get("teams", None):
                     teams_list = data.get("teams")

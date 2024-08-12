@@ -55,14 +55,7 @@ class TeamsListView(APIView, LimitOffsetPagination):
         tags=["Teams"], parameters=swagger_params1.teams_list_get_params
     )
     def get(self, *args, **kwargs):
-        if self.request.profile.role != "ADMIN" and not self.request.profile.is_admin:
-            return Response(
-                {
-                    "error": True,
-                    "errors": "You don't have permission to perform this action.",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        
         context = self.get_context_data(**kwargs)
         return Response(context)
 
@@ -70,14 +63,7 @@ class TeamsListView(APIView, LimitOffsetPagination):
         tags=["Teams"], request=TeamswaggerCreateSerializer,parameters=swagger_params1.organization_params
     )
     def post(self, request, *args, **kwargs):
-        if self.request.profile.role != "ADMIN" and not self.request.profile.is_admin:
-            return Response(
-                {
-                    "error": True,
-                    "errors": "You don't have permission to perform this action.",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        
         serializer = TeamCreateSerializer(data=request.data, request_obj=self.request)
         if serializer.is_valid():
             team_obj = serializer.save()
@@ -103,14 +89,7 @@ class TeamsDetailView(APIView):
         tags=["Teams"], parameters=swagger_params1.organization_params
     )
     def get(self, request, pk, **kwargs):
-        if self.request.profile.role != "ADMIN" and not self.request.profile.is_admin:
-            return Response(
-                {
-                    "error": True,
-                    "errors": "You don't have permission to perform this action.",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        
         self.team_obj = self.get_object(pk)
         context = {}
         context["team"] = TeamsSerializer(self.team_obj).data
@@ -120,14 +99,7 @@ class TeamsDetailView(APIView):
         tags=["Teams"], request=TeamswaggerCreateSerializer,parameters=swagger_params1.organization_params
     )
     def put(self, request, pk, *args, **kwargs):
-        if self.request.profile.role != "ADMIN" and not self.request.profile.is_admin:
-            return Response(
-                {
-                    "error": True,
-                    "errors": "You don't have permission to perform this action.",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        
         params = request.data
         self.team = self.get_object(pk)
         actual_users = self.team.get_users()
@@ -165,14 +137,7 @@ class TeamsDetailView(APIView):
         tags=["Teams"], parameters=swagger_params1.organization_params
     )
     def delete(self, request, pk, **kwargs):
-        if self.request.profile.role != "ADMIN" and not self.request.profile.is_admin:
-            return Response(
-                {
-                    "error": True,
-                    "errors": "You don't have permission to perform this action.",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        
         self.team_obj = self.get_object(pk)
         self.team_obj.delete()
         return Response(
