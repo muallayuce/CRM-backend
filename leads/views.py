@@ -64,7 +64,7 @@ class LeadListView(APIView, LimitOffsetPagination):
             Lead.objects.filter(org=self.request.profile.org)
             .exclude(status="converted")
             .select_related("created_by")
-            .prefetch_related("tags", "assigned_to")
+            .prefetch_related("tags", "assigned_to", "teams")
             .order_by("-id")
         )
 
@@ -87,6 +87,8 @@ class LeadListView(APIView, LimitOffsetPagination):
                 queryset = queryset.filter(city__icontains=params.get("city"))
             if params.get("email"):
                 queryset = queryset.filter(email__icontains=params.get("email"))
+            if params.getlist("teams"):
+                queryset = queryset.filter(teams__id__in=params.getlist("teams"))
 
         context = {}
         queryset_open = queryset.exclude(status="closed")
