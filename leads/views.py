@@ -4,6 +4,7 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
 from rest_framework import status, permissions
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -271,6 +272,7 @@ class LeadListView(APIView, LimitOffsetPagination):
 class LeadDetailView(APIView):
     model = Lead
     permission_classes = (IsAuthenticated,)
+    parser_classes = [MultiPartParser, FormParser]
 
     def get_object(self, pk):
         return get_object_or_404(Lead, id=pk)
@@ -334,6 +336,7 @@ class LeadDetailView(APIView):
     def post(self, request, pk, **kwargs):
         params = request.data
         self.lead_obj = self.get_object(pk)
+        
         if self.lead_obj.org != request.profile.org:
             return Response({"error": True, "errors": "User company does not match with header."}, status=status.HTTP_403_FORBIDDEN)
         if not self.has_permission(request, self.lead_obj):
@@ -343,12 +346,14 @@ class LeadDetailView(APIView):
         if comment_serializer.is_valid():
             if params.get("comment"):
                 comment_serializer.save(lead_id=self.lead_obj.id, commented_by_id=request.profile.id)
-            if request.FILES.get("lead_attachment"):
+            # Use dictionary-style access to get the file from request.FILES
+            lead_attachment = request.FILES.get("lead_attachment")
+            if lead_attachment:
                 attachment = Attachments(
                     created_by=request.profile.user,
-                    file_name=request.FILES.get("lead_attachment").name,
+                    file_name=lead_attachment.name,
                     lead=self.lead_obj,
-                    attachment=request.FILES.get("lead_attachment")
+                    attachment=lead_attachment
                 )
                 attachment.save()
         else:
