@@ -346,6 +346,8 @@ class LeadDetailView(APIView):
         if comment_serializer.is_valid():
             if params.get("comment"):
                 comment_serializer.save(lead_id=self.lead_obj.id, commented_by_id=request.profile.id)
+            else:
+                return Response({"error": True, "errors": "Comment field is required."}, status=status.HTTP_400_BAD_REQUEST)
             # Use dictionary-style access to get the file from request.FILES
             lead_attachment = request.FILES.get("lead_attachment")
             if lead_attachment:
