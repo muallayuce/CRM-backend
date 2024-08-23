@@ -272,7 +272,7 @@ class LeadListView(APIView, LimitOffsetPagination):
 class LeadDetailView(APIView):
     model = Lead
     permission_classes = (IsAuthenticated,)
-    parser_classes = [MultiPartParser, FormParser]
+    """ parser_classes = [MultiPartParser, FormParser] """
 
     def get_object(self, pk):
         return get_object_or_404(Lead, id=pk)
