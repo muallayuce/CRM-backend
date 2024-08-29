@@ -1,4 +1,5 @@
 import json
+from amqp import NotFound
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
 
 #from common.external_auth import CustomDualAuthentication
@@ -142,5 +143,89 @@ class TeamsDetailView(APIView):
         self.team_obj.delete()
         return Response(
             {"error": False, "message": "Team Deleted Successfully"},
+            status=status.HTTP_200_OK,
+        )
+    
+class TeamsRemoveUserView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get_team_object(self, pk):
+        """
+        Helper method to retrieve the team object based on the team ID (pk).
+        """
+        try:
+            return Teams.objects.get(pk=pk, org=self.request.profile.org)
+        except Teams.DoesNotExist:
+            raise NotFound({"error": True, "message": "Team not found."})
+    def get_user_object(self, profile_id):
+        """
+        Helper method to retrieve the user object based on the profile ID.
+        """
+        try:
+            return Profile.objects.get(id=profile_id, org=self.request.profile.org)
+        except Profile.DoesNotExist:
+            raise NotFound({"error": True, "message": "User not found."})
+
+    @extend_schema(
+        tags=["Teams"], parameters=swagger_params1.organization_params
+    )
+    def delete(self, request, pk, profile_id, **kwargs):
+        """Remove a user from a specific team."""
+        # Retrieve the team object using the provided team ID (pk)
+        team = self.get_team_object(pk)
+
+        # If user_id is not provided, return a 400 Bad Request
+        if not profile_id:
+            return Response(
+                {"error": True, "message": "User ID is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Try to get the Profile object of the user
+        try:
+            user = Profile.objects.get(id=profile_id, org=request.profile.org)
+        except Profile.DoesNotExist:
+            return Response(
+                {"error": True, "message": "User not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Check if the user is part of the team
+        if user in team.users.all():
+            team.users.remove(user)
+            return Response(
+                {"error": False, "message": "User removed from team successfully."},
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                {"error": True, "message": "User not in this team."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+    @extend_schema(
+        tags=["Teams"], parameters=swagger_params1.organization_params
+    )
+    def post(self, request, pk, profile_id, **kwargs):
+        """Add a user to a specific team."""
+        team = self.get_team_object(pk)
+        
+
+        if not profile_id:
+            return Response(
+                {"error": True, "message": "User ID is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = Profile.objects.get(id=profile_id, org=request.profile.org)
+
+        if user in team.users.all():
+            return Response(
+                {"error": True, "message": "User already in this team."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        team.users.add(user)
+        return Response(
+            {"error": False, "message": "User added to team successfully."},
             status=status.HTTP_200_OK,
         )
