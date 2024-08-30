@@ -293,8 +293,8 @@ class LeadDetailView(APIView):
 
         if self.request.user.is_superuser or self.request.profile.role == "ADMIN":
             users_mention = list(Profile.objects.filter(is_active=True, org=self.request.profile.org).values("user__email"))
-        elif self.request.profile != lead.created_by:
-            users_mention = [{"username": lead.created_by.username}]
+        #elif self.request.profile != lead.created_by:
+            #users_mention = [{"username": lead.created_by.username}]
         else:
             users_mention = list(lead.assigned_to.all().values("user__email"))
 
